@@ -1,0 +1,56 @@
+
+@'
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+
+# Virtual environments
+venv/
+.venv/
+env/
+ENV/
+
+# Environment variables and secrets
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Logs and temporary files
+*.log
+*.tmp
+*.bak
+*.swp
+
+# Project data and documentation
+/data/
+/docs/
+/skills/
+/AGENT_INSTRUCTIONS.md
+/BIONEXUS_SKILLS_FINAL_AUDIT_REPORT_A-K.md
+/BIONEXUS_V1_SCIENTIFIC_TECHNICAL_DESIGN_V3.md
+/BIONEXUS_V1_SCIENTIFIC_TECHNICAL_DESIGN_V4.md
+/BIO_NEXUS_MASTER_KNOWLEDGE.md
+/BIO_NEXUS_V1_DESIGN.html
+
+# Generated outputs
+outputs/
+results/
+reports/
+build/
+dist/
+'@ | Set-Content -Path .gitignore -Encoding utf8
