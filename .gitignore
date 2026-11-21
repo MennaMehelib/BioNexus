@@ -54,3 +54,7 @@ reports/
 build/
 dist/
 '@ | Set-Content -Path .gitignore -Encoding utf8
+.u_denylist
+__pycache__/
+*.egg-info/
+out/

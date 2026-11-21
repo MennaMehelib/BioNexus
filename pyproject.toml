@@ -1,0 +1,24 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "bionexus"
+version = "0.1.0"
+description = "BioNexus V1: decide whether bulk RNA-seq datasets can be scientifically integrated"
+requires-python = ">=3.10"
+dependencies = ["pandas", "numpy"]
+
+[project.optional-dependencies]
+test = ["pytest"]
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+packages = ["bionexus"]
+
+[tool.setuptools.package-data]
+bionexus = ["rules_register.json"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]
