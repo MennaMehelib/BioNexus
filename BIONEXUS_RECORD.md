@@ -1,0 +1,37 @@
+# BioNexus V1 — Working Record (decisions, issues, changes, validation)
+Maintained by the lead architect. Every entry cites its source. Status words: Decided / Open / Proposed-gated / Done.
+
+## 1. Accepted decisions
+| ID | Decision | Source | Date |
+|---|---|---|---|
+| AD-01 | Consolidated plan and rule cards are the approved working baseline for V1 | Owner message 2026-11-21 02:12 | 2026-11-21 |
+| AD-02 | Plan section 8 decisions accepted as written (DR-01..DR-09 decided by architect; DR-10 spec amendments, DR-11 register v1.0 approved in principle by the baseline approval) | Same message ("I agree with the proposed direction and decisions") | 2026-11-21 |
+| AD-03 | GATED and CONDITIONAL rules stay proposed and disabled until their validation passes | Same message | 2026-11-21 |
+| AD-04 | `PREPROCESSING_DECISION_MAP.md` exists; not relied on, including for Nemotron tasks | Owner clarification | 2026-11-21 |
+| AD-05 | Changes only from a documented finding, test result or verified requirement | Owner message | 2026-11-21 |
+
+Note on AD-02: the owner approved "the plan" and "the proposed direction and decisions". I read this as OD-1 and OD-2 answered. The spec text itself (`AGENT_INSTRUCTIONS.md`) is not edited yet; OD-1 amendments are recorded as approved wording and will be applied to the spec only when the owner confirms the edit to the file. This is logged as I-03.
+
+## 2. Open issues
+| ID | Issue | Blocks | Owner/next step |
+|---|---|---|---|
+| I-01 | Accession in both the Stage 1 plan and the locked U list (OD-3) | M5 | Owner |
+| I-02 | Supervisor review of T-* and B-* (OD-4) | M4 freeze | Owner |
+| I-03 | Apply OD-1 wording to `AGENT_INSTRUCTIONS.md` (file edit not yet authorized explicitly) | M1 spec parity only | Ask owner once, at M1 start |
+| I-04 | Authorize Skills Pack and test-wording revision (OD-5) | M2 | Owner |
+| I-08 | Roadmap, workflow chart and Antigravity prompts delivered; awaiting owner repo handoff (M0 items 5, 6) | M1 start | Owner |
+| I-05 | Nemotron N2 and N1 not yet run (briefs ready: NEMOTRON_N2_PASTE.md, NEMOTRON_N1_PASTE.md) | M0 exit | Owner pastes; architect reviews |
+| I-06 | Set B definition: pre-registered criteria not yet written | M5 | Architect, before any candidate is opened |
+| I-07 | A3 read layout conflict (C-12 in master knowledge) | none for M1 | Note only |
+
+## 3. Changes
+| Date | File | Change | Reason |
+|---|---|---|---|
+| 2026-11-21 | BIONEXUS_V1_IMPLEMENTATION_ROADMAP.md, ANTIGRAVITY_M1_PROMPTS.md, BIONEXUS_V1_WORKFLOW.png, NEMOTRON_N1_PASTE.md, NEMOTRON_N2_PASTE.md | New files per owner request; no existing file modified | Owner message 2026-11-21 04:21 |
+| 2026-11-21 | BIONEXUS_V1_CONSOLIDATED_PLAN.md | Source-check statement corrected; status line set to approved baseline | Owner correction, approval |
+
+## 4. Validation results
+None yet. No test or experiment has been run.
+
+## 5. Milestone state
+M0: roadmap and prompts done; waiting on owner items 5 and 6 (repo + data path + deny-list). M1 can start once those are given. N1/N2 must finish by M1 exit, not before M1 start.
