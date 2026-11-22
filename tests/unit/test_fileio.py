@@ -204,3 +204,112 @@ def test_out_path_equal_to_input_rejected(tmp_path):
     with pytest.raises(ValueError):
         parse_matrix(p, out_path=p)
     assert sha256_file(p) == before
+
+
+# ----------------------------------------------------------------- T1.3b
+# D-T1.3-1: when one delimiter candidate fails on quoting and another candidate
+# is only "plausible" because it reads a quote character as literal text, the
+# plausible one must not be chosen silently.
+def test_quote_error_with_plausible_other_delimiter_not_assessable(tmp_path):
+    p = put(tmp_path, "d.txt", 'g\th,i\nx\t"A,1\ny\t3,4\n')
+    res = parse_matrix(p)
+    assert res.df is None
+    assert outcomes(res) == [Outcome.NOT_ASSESSABLE]
+    ev = res.records[0].evidence
+    assert "tab" in ev["delimiters_with_quote_errors"]
+    assert ev["plausible_delimiters"] == ["comma"]
+    for r in res.records:
+        json.dumps(r.to_dict())
+
+
+def test_quote_error_mirror_case_comma_error_tab_plausible(tmp_path):
+    p = put(tmp_path, "d.txt", 'g,h\ti\nx,"A\t1\ny,3\t4\n')
+    res = parse_matrix(p)
+    assert res.df is None
+    assert outcomes(res) == [Outcome.NOT_ASSESSABLE]
+    assert "comma" in res.records[0].evidence["delimiters_with_quote_errors"]
+    assert res.records[0].evidence["plausible_delimiters"] == ["tab"]
+
+
+def test_not_assessable_quote_case_writes_no_derived_file(tmp_path):
+    p = put(tmp_path, "d.txt", 'g\th,i\nx\t"A,1\ny\t3,4\n')
+    out = tmp_path / "o.tsv"
+    parse_matrix(p, out_path=out)
+    assert not out.exists()
+
+
+def test_legitimate_quoted_comma_file_still_passes_despite_tab_quote_error(tmp_path):
+    # Under the tab candidate the quoted first column raises a quote error, but
+    # every quote is explained by the comma reading: this must still parse.
+    p = put(tmp_path, "q.csv", '"gene,x",s1,s2\n"A,1",1,2\n"B,2",3,4\n')
+    res = parse_matrix(p)
+    assert_ok(res)
+    assert list(res.df.columns) == ["gene,x", "s1", "s2"]
+    assert res.df.iloc[0].tolist() == ["A,1", "1", "2"]
+
+
+def test_escaped_quotes_inside_quoted_field_still_pass(tmp_path):
+    p = put(tmp_path, "e.csv", '"g","s1"\n"a ""b""",1\n')
+    res = parse_matrix(p)
+    assert_ok(res)
+    assert res.df.iloc[0].tolist() == ['a "b"', "1"]
+
+
+def test_literal_quote_without_any_candidate_error_unchanged(tmp_path):
+    # No candidate fails on quoting, so there is no disagreement to report.
+    p = put(tmp_path, "l.csv", 'g,h\n5" pipe,1\n')
+    res = parse_matrix(p)
+    assert_ok(res)
+    assert res.df.iloc[0].tolist() == ['5" pipe', "1"]
+
+
+# first-column-as-index helper (data-flow gap between parse_matrix and G-03/R-01)
+def test_first_column_as_index_basic(tmp_path):
+    from bionexus.fileio import first_column_as_index
+
+    res = parse_matrix(put(tmp_path, "m.tsv", "gene\ts1\ts2\nA\t1\t2\nB\t3\t4\n"))
+    out = first_column_as_index(res.df)
+    assert list(out.index) == ["A", "B"]
+    assert out.index.name == "gene"
+    assert list(out.columns) == ["s1", "s2"]
+    assert out.values.tolist() == [["1", "2"], ["3", "4"]]
+    assert all(dt == object for dt in out.dtypes)
+
+
+def test_first_column_as_index_does_not_mutate_input_or_alias(tmp_path):
+    from bionexus.fileio import first_column_as_index
+
+    res = parse_matrix(put(tmp_path, "m.tsv", "gene\ts1\nA\t1\nB\t2\n"))
+    before = res.df.copy(deep=True)
+    out = first_column_as_index(res.df)
+    assert res.df.equals(before) and list(res.df.columns) == ["gene", "s1"]
+    out.iloc[0, 0] = "changed"
+    assert res.df.iloc[0, 1] == "1"
+
+
+def test_first_column_as_index_keeps_exact_strings_and_duplicates(tmp_path):
+    from bionexus.fileio import first_column_as_index
+
+    text = "gene\ts1\ts1\nA\t9007199254740993\t1.50\nA\t0010\t-0\n"
+    res = parse_matrix(put(tmp_path, "m.tsv", text))
+    out = first_column_as_index(res.df)
+    assert list(out.index) == ["A", "A"]  # duplicates preserved, not resolved
+    assert out.values.tolist() == [["9007199254740993", "1.50"], ["0010", "-0"]]
+    assert list(out.columns) == ["s1", "s1"]
+
+
+def test_first_column_as_index_ragged_header_empty_label(tmp_path):
+    from bionexus.fileio import first_column_as_index
+
+    res = parse_matrix(put(tmp_path, "r.tsv", "s1\ts2\nA\t1\t2\n"))
+    out = first_column_as_index(res.df)
+    assert list(out.index) == ["A"]
+    assert list(out.columns) == ["s1", "s2"]
+
+
+def test_first_column_as_index_needs_two_columns():
+    import pandas as pd
+    from bionexus.fileio import first_column_as_index
+
+    with pytest.raises(ValueError):
+        first_column_as_index(pd.DataFrame({"only": ["a"]}, dtype=object))

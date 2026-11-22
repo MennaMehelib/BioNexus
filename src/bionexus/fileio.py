@@ -56,6 +56,40 @@ def _split(text, sep):
     return [r for r in rows if r]  # blank lines carry no data
 
 
+def _has_unexplained_quote(text, sep):
+    """True if a quote character appears inside an unquoted field under ``sep``.
+
+    A quote is "explained" when it opens a quoted field, closes one, or is an
+    escaped pair inside one. A quote in the middle of an unquoted field is read
+    as literal text by the csv module, so it never fails; it is only reported
+    here, to detect disagreement between delimiter candidates (D-T1.3-1).
+    """
+    state = "start"
+    for ch in text:
+        end = ch == sep or ch in "\r\n"
+        if state == "start":
+            if ch == '"':
+                state = "quoted"
+            elif not end:
+                state = "unquoted"
+        elif state == "unquoted":
+            if end:
+                state = "start"
+            elif ch == '"':
+                return True
+        elif state == "quoted":
+            if ch == '"':
+                state = "after_quote"
+        else:  # after_quote
+            if ch == '"':
+                state = "quoted"  # escaped quote
+            elif end:
+                state = "start"
+            else:
+                return True  # text after a closing quote
+    return False
+
+
 def _structure(rows):
     """Return 'ok' (equal widths), 'ragged' (header one label short) or None."""
     if not rows:
@@ -126,6 +160,18 @@ def parse_matrix(path, out_path=None) -> ParseResult:
         return _fail(path, Outcome.NOT_ASSESSABLE,
                      "ambiguous delimiter: more than one is equally plausible; no guess made",
                      {"plausible_delimiters": plausible})
+    if len(plausible) == 1 and quote_errors:
+        # Another delimiter failed on quoting. That is harmless when every quote
+        # is explained by the plausible reading; otherwise the two readings
+        # disagree about what a quote means and no guess is made.
+        sep = parsed[plausible[0]][0]
+        if _has_unexplained_quote(text, sep):
+            return _fail(path, Outcome.NOT_ASSESSABLE,
+                         "quote handling disagrees between delimiter candidates: "
+                         "one candidate fails on quoting and the other reads a quote "
+                         "as literal text; no guess made",
+                         {"delimiters_with_quote_errors": quote_errors,
+                          "plausible_delimiters": plausible})
     if not plausible:
         splitting = [n for n, (_, rows, _) in parsed.items()
                      if any(len(r) > 1 for r in rows)]
@@ -180,3 +226,20 @@ def parse_matrix(path, out_path=None) -> ParseResult:
         change_log.append(f"wrote normalized tab-delimited copy to {out_path}")
 
     return ParseResult(df, change_log, records)
+
+
+def first_column_as_index(df: pd.DataFrame) -> pd.DataFrame:
+    """Return a copy of a parsed matrix with its first column as the row labels.
+
+    ``parse_matrix`` keeps the identifier column as ordinary data. Orientation
+    and representation steps need the identifiers as the index, so this helper
+    moves the first column into the index without changing any cell: values stay
+    exact strings, duplicate labels are preserved (never resolved here), and the
+    input frame is not modified.
+    """
+    if df.shape[1] < 2:
+        raise ValueError("matrix needs an identifier column and at least one data column")
+    labels = pd.Index(df.iloc[:, 0].tolist(), dtype=object, name=df.columns[0])
+    out = df.iloc[:, 1:].copy(deep=True)
+    out.index = labels
+    return out
