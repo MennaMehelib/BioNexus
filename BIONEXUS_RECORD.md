@@ -29,9 +29,20 @@ Note on AD-02: the owner approved "the plan" and "the proposed direction and dec
 |---|---|---|---|
 | 2026-11-21 | BIONEXUS_V1_IMPLEMENTATION_ROADMAP.md, ANTIGRAVITY_M1_PROMPTS.md, BIONEXUS_V1_WORKFLOW.png, NEMOTRON_N1_PASTE.md, NEMOTRON_N2_PASTE.md | New files per owner request; no existing file modified | Owner message 2026-11-21 04:21 |
 | 2026-11-21 | BIONEXUS_V1_CONSOLIDATED_PLAN.md | Source-check statement corrected; status line set to approved baseline | Owner correction, approval |
+| 2026-11-22 | src/bionexus/fileio.py, tests/unit/test_fileio.py | T1.3b (commit 2417c68, branch fix/t1-3b-t1-5b): a delimiter candidate that fails on quoting while another candidate is plausible only by reading a quote as literal text now gives not_assessable instead of a silent guess (D-T1.3-1); added `first_column_as_index` (first column as row labels; exact strings, duplicates preserved, input not mutated). +11 tests | Resolves D-T1.3-1. Adds the `first_column_as_index` helper; its integration into the parse-to-orientation data flow remains for T1.8. Owner authorization 2026-11-22 |
+| 2026-11-22 | src/bionexus/representation.py, tests/unit/test_representation.py | T1.5b (commit 9e64cad, branch fix/t1-3b-t1-5b): cells (strings and Python ints) whose exact expansion exceeds 4000 digits are not_assessable (resource-safety bound, not a scientific threshold), closing a hang and a serialization failure on extreme exponents or huge integers (D-T1.5-1); R-05 annotation coverage is now reported on the non-numeric and no-values early-return paths (D-T1.5-2). +32 tests | Resolves D-T1.5-1 and D-T1.5-2. Owner authorization 2026-11-22 |
 
 ## 4. Validation results
-None yet. No test or experiment has been run.
+Historical baseline: no tests or experiments had been recorded at the time of the previous record update.
+
+| Date | Scope | Result |
+|---|---|---|
+| 2026-11-22 | T1.3b (2417c68) | 11 regression tests added; the focused test suite passed after the patch |
+| 2026-11-22 | T1.5b (9e64cad) | 32 regression tests added; the focused test suite passed after the patch |
+| 2026-11-22 | Full test suite on Windows (owner-reported) | 286 passed after both patches (focused fileio and representation tests: 135 passed) |
+| 2026-11-22 | Post-commit remote verification of fix/t1-3b-t1-5b | All checks passed: two commits on top of 51d1bed (M1 T1.6), each with only its two intended files, content identical to the delivered patches, `git diff --check` clean |
 
 ## 5. Milestone state
 M0: roadmap and prompts done; waiting on owner items 5 and 6 (repo + data path + deny-list). M1 can start once those are given. N1/N2 must finish by M1 exit, not before M1 start.
+
+2026-11-22: T1.3b (2417c68) and T1.5b (9e64cad) are committed and pushed to `fix/t1-3b-t1-5b`. The branch is not merged into `implementation/m1-intake`; T1.8 depends on both.

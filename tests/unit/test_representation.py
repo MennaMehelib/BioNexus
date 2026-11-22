@@ -504,3 +504,194 @@ def test_no_whole_sample_na_record_without_missing_and_for_zero_rows():
     assert not rec(evidence_record(counts()), "R-06")
     res = evidence_record(pd.DataFrame({"s1": [], "s2": []}))
     assert not rec(res, "R-06", Outcome.NEED_FACT)
+
+
+# ----------------------------------------------------------------- T1.5b
+# D-T1.5-1: numeric-looking cells with an extreme exponent or length used to hang
+# (huge exact integers) or raise an uncaught ValueError. D-T1.5-2: R-05 annotation
+# coverage was skipped on the two early-return paths.
+import subprocess
+import sys
+import textwrap
+
+_RUN = textwrap.dedent(
+    """
+    import json, sys
+    import pandas as pd
+    from bionexus.representation import evidence_record
+    v = json.loads(sys.stdin.read())
+    if isinstance(v, dict):  # {"pow10": e, "sign": s} -> a real Python int cell
+        v = v["sign"] * 10 ** v["pow10"]
+    df = pd.DataFrame({"s1": [v, "1", "2"], "s2": ["2", "3", "4"]},
+                      index=["G1", "G2", "G3"], dtype=object)
+    res = evidence_record(df)
+    json.dumps(res.to_dict(), allow_nan=False)
+    print(json.dumps([[r.check_id, r.outcome.value, r.evidence] for r in res.records]))
+    """
+)
+
+
+def _bounded_run(value, seconds=20):
+    """Run evidence_record in a child process so a hang fails instead of freezing.
+
+    The child finds ``bionexus`` through PYTHONPATH (the directory this test
+    imported it from), so it works whether the package is pip-installed or
+    only on pytest's ``pythonpath``. The cell value is sent on stdin to stay
+    clear of command-line length limits (Windows).
+    """
+    import os
+    from pathlib import Path
+
+    import bionexus
+
+    src_dir = str(Path(bionexus.__file__).resolve().parent.parent)
+    env = dict(os.environ)
+    env["PYTHONPATH"] = src_dir
+    try:
+        proc = subprocess.run(
+            [sys.executable, "-c", _RUN],
+            input=json.dumps(value), capture_output=True, text=True,
+            timeout=seconds, env=env,
+        )
+    except subprocess.TimeoutExpired:
+        pytest.fail(f"evidence_record did not finish within {seconds}s for {str(value)[:40]!r}")
+    assert proc.returncode == 0, proc.stderr[-400:]
+    return json.loads(proc.stdout)
+
+
+EXTREME = [
+    "1e100000000",
+    "1E+999999999",
+    "-1e100000000",
+    "1e-1000000",
+    "1e5000",
+    "9" * 4001,
+    "0." + "0" * 4000 + "1",
+]
+
+
+@pytest.mark.parametrize("value", EXTREME, ids=lambda v: v[:14] + ("..." if len(v) > 14 else ""))
+def test_extreme_numeric_cell_is_not_assessable_and_bounded(value):
+    records = _bounded_run(value)
+    assert [(c, o) for c, o, _ in records] == [("R-01.non_numeric", "not_assessable")]
+    ev = records[0][2]
+    assert ev["n_non_numeric_cells"] == 1
+    assert ev["n_out_of_supported_range"] == 1
+    assert ev["examples"][0]["gene"] == "G1" and ev["examples"][0]["sample"] == "s1"
+    assert ev["examples"][0]["reason"] == "outside supported exact range"
+
+
+@pytest.mark.parametrize("value", ["1e300", "1e-300", "9" * 4000, "1" + "0" * 3000,
+                                   "0." + "0" * 3998 + "1", "1.5e-7", "-12.25"])
+def test_numeric_cell_inside_supported_range_is_still_assessed_exactly(value):
+    records = _bounded_run(value)
+    assert "R-01.non_numeric" not in [c for c, _, _ in records]
+
+
+def test_extreme_cell_does_not_change_ordinary_non_numeric_evidence():
+    df = obj({"s1": ["NA", "1", "2"], "s2": ["2", "3", "4"]})
+    res = evidence_record(df)
+    ev = rec(res, "R-01")[0].evidence
+    assert ev["n_non_numeric_cells"] == 1
+    assert ev["n_out_of_supported_range"] == 0
+    assert "reason" not in ev["examples"][0]
+
+
+def test_input_frame_untouched_by_extreme_cell_rejection():
+    df = obj({"s1": ["1e100000000", "1", "2"], "s2": ["2", "3", "4"]})
+    before = df.copy(deep=True)
+    evidence_record(df)
+    assert df.equals(before)
+
+
+# R-05 on the early-return paths
+def test_r05_reported_when_non_numeric_cells_block_assessment():
+    df = obj({"s1": ["NA", "1", "2"], "s2": ["2", "3", "4"]})
+    res = evidence_record(df, annotation_genes=["G1", "G2", "X", "Y"])
+    assert rec(res, "R-01", Outcome.NOT_ASSESSABLE)
+    r05 = rec(res, "R-05", Outcome.LIMITATION)
+    assert len(r05) == 1
+    ev = r05[0].evidence
+    assert ev["annotation_genes"] == 4 and ev["present"] == 2 and ev["absent"] == 2
+    assert res.annotation_fraction == 0.5
+    strict_json(res)
+
+
+def test_r05_reported_when_matrix_has_no_values():
+    df = obj({"s1": [None, None, None], "s2": ["", "", ""]})
+    res = evidence_record(df, annotation_genes=["G1", "X"])
+    assert rec(res, "R-01", Outcome.NOT_ASSESSABLE)
+    r05 = rec(res, "R-05", Outcome.LIMITATION)
+    assert len(r05) == 1 and r05[0].evidence["absent"] == 1
+    assert res.annotation_fraction == 0.5
+    strict_json(res)
+
+
+def test_r05_full_coverage_on_early_paths_sets_fraction_without_record():
+    nonnum = obj({"s1": ["NA", "1", "2"], "s2": ["2", "3", "4"]})
+    novals = obj({"s1": [None, None, None], "s2": [None, None, None]})
+    for df in (nonnum, novals):
+        res = evidence_record(df, annotation_genes=["G1", "G2", "G3"])
+        assert not rec(res, "R-05")
+        assert res.annotation_fraction == 1.0
+
+
+def test_r05_empty_annotation_list_noted_on_early_paths():
+    nonnum = obj({"s1": ["NA", "1", "2"], "s2": ["2", "3", "4"]})
+    novals = obj({"s1": [None, None, None], "s2": [None, None, None]})
+    for df in (nonnum, novals):
+        res = evidence_record(df, annotation_genes=[])
+        note = rec(res, "R-05", Outcome.NOTE)
+        assert len(note) == 1 and note[0].evidence == {"annotation_genes": 0}
+        assert res.annotation_fraction is None
+
+
+def test_no_r05_on_early_paths_when_no_annotation_given():
+    nonnum = obj({"s1": ["NA", "1", "2"], "s2": ["2", "3", "4"]})
+    novals = obj({"s1": [None, None, None], "s2": [None, None, None]})
+    for df in (nonnum, novals):
+        res = evidence_record(df)
+        assert not rec(res, "R-05")
+        assert res.annotation_fraction is None
+
+
+def test_r05_on_extreme_cell_path_too():
+    df = obj({"s1": ["1e100000000", "1", "2"], "s2": ["2", "3", "4"]})
+    res = evidence_record(df, annotation_genes=["G1", "X"])
+    assert rec(res, "R-01", Outcome.NOT_ASSESSABLE)
+    assert rec(res, "R-05", Outcome.LIMITATION)
+
+
+# Python int cells take a different branch of _classify than strings; the same
+# resource-safety bound must apply (a 5001-digit int used to pass assessment and
+# then break strict-JSON serialization on Python's 4300-digit int-to-str limit).
+@pytest.mark.parametrize("exp,sign", [(5000, 1), (5000, -1), (4000, 1), (100000, 1)],
+                         ids=["10^5000", "-10^5000", "10^4000", "10^100000"])
+def test_huge_python_int_cell_not_assessable_and_bounded(exp, sign):
+    # 10**4000 has 4001 digits: one past the bound.
+    records = _bounded_run({"pow10": exp, "sign": sign})
+    assert [(c, o) for c, o, _ in records] == [("R-01.non_numeric", "not_assessable")]
+    ev = records[0][2]
+    assert ev["n_out_of_supported_range"] == 1
+    assert ev["examples"][0]["reason"] == "outside supported exact range"
+    if exp >= 5000:  # beyond Python's 4300-digit limit: described, never converted
+        assert ev["examples"][0]["value"].startswith("<integer of ")
+
+
+@pytest.mark.parametrize("n", [10**3999, -(10**3999), 10**4000 - 1, 2**64, -(2**70)],
+                         ids=["10^3999", "-10^3999", "10^4000-1", "2^64", "-2^70"])
+def test_large_python_int_inside_bound_still_exact_and_serializable(n):
+    df = pd.DataFrame({"s1": [n, 1], "s2": [2, 3]}, index=["G1", "G2"], dtype=object)
+    res = evidence_record(df)
+    assert not rec(res, "R-01", Outcome.NOT_ASSESSABLE)
+    strict_json(res)
+    assert res.minimum == min(n, 1)
+
+
+def test_numpy_integers_unaffected_by_bound():
+    df = pd.DataFrame({"s1": np.array([2**62, 1], dtype=np.int64),
+                       "s2": np.array([-5, 3], dtype=np.int64)}, index=["G1", "G2"])
+    res = evidence_record(df)
+    assert not rec(res, "R-01", Outcome.NOT_ASSESSABLE)
+    assert res.minimum == -5
+    strict_json(res)
