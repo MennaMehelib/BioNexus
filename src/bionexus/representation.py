@@ -36,9 +36,27 @@ from .records import AssessmentRecord, Outcome
 _VERSION = "0.1"
 _MISSING = object()
 
+# Resource-safety bound, not a biological threshold: a cell is assessed only if
+# the exact positional expansion of its value (digits left of the decimal point
+# plus digits right of it) is at most this many digits. Real expression values are
+# many orders of magnitude inside it (float64 spans about 308 digits). Beyond it,
+# exact arithmetic could hang (e.g. 1e100000000) or hit Python's 4300-digit
+# int-to-string limit when the value is reported, so the cell is not assessed.
+_MAX_POSITIONAL_DIGITS = 4000
+
+
+# Smallest bit length that certainly exceeds the digit bound: 2**13300 has more
+# than 4003 decimal digits. Used so huge ints are rejected without converting them
+# to a string (which Python itself refuses beyond 4300 digits).
+_INT_BITS_CERTAINLY_OVER = 13300
+
 
 class _NonNumeric(Exception):
     pass
+
+
+class _OutOfRange(_NonNumeric):
+    """A finite numeric-looking cell whose exact expansion exceeds the bound."""
 
 
 def _classify(x):
@@ -58,8 +76,15 @@ def _classify(x):
             raise _NonNumeric from None
         if not d.is_finite():
             raise _NonNumeric
+        left = max(0, d.adjusted() + 1)
+        right = max(0, -d.as_tuple().exponent)
+        if left + right > _MAX_POSITIONAL_DIGITS:
+            raise _OutOfRange
         return Fraction(d)
     if isinstance(x, (int, np.integer)):
+        n = abs(int(x))
+        if n.bit_length() > _INT_BITS_CERTAINLY_OVER or len(str(n)) > _MAX_POSITIONAL_DIGITS:
+            raise _OutOfRange
         return Fraction(int(x))
     if isinstance(x, (float, np.floating)):
         if math.isnan(x):
@@ -68,6 +93,16 @@ def _classify(x):
             raise _NonNumeric
         return Fraction(float(x))
     raise _NonNumeric
+
+
+def _cell_text(x):
+    """str(x) for evidence, except that a huge int is described, not converted
+    (Python refuses int-to-str beyond 4300 digits)."""
+    if isinstance(x, (int, np.integer)) and not isinstance(x, (bool, np.bool_)):
+        bits = abs(int(x)).bit_length()
+        if bits > _INT_BITS_CERTAINLY_OVER:
+            return f"<integer of {bits} bits, not shown>"
+    return str(x)
 
 
 def _exact_decimal_string(fr):
@@ -169,9 +204,12 @@ def evidence_record(
         for c in range(n_cols):
             try:
                 parsed[r][c] = _classify(cells[r][c])
-            except _NonNumeric:
-                bad.append({"gene": str(df.index[r]), "sample": str(df.columns[c]),
-                            "value": str(cells[r][c])})
+            except _NonNumeric as exc:
+                item = {"gene": str(df.index[r]), "sample": str(df.columns[c]),
+                        "value": _cell_text(cells[r][c])}
+                if isinstance(exc, _OutOfRange):
+                    item["reason"] = "outside supported exact range"
+                bad.append(item)
 
     records: list[AssessmentRecord] = []
     declared_out = declared
@@ -185,6 +223,30 @@ def evidence_record(
         )
         base.update(facts)
         return RepresentationEvidence(records=records, **base)
+
+    def add_annotation():
+        """R-05 needs only the gene labels, so it runs on every path."""
+        if annotation_genes is None:
+            return None
+        ann = {str(g) for g in annotation_genes}
+        if not ann:
+            records.append(_rec("R-05", "R-05.annotation", scope, Outcome.NOTE,
+                                "annotation gene list is empty; coverage fraction "
+                                "is undefined", {"annotation_genes": 0}))
+            return None
+        n_present = len(ann & {str(g) for g in df.index})
+        absent = len(ann) - n_present
+        ann_fraction = n_present / len(ann)
+        if absent:
+            records.append(_rec(
+                "R-05", "R-05.annotation", scope, Outcome.LIMITATION,
+                f"{n_present} of {len(ann)} annotation genes are present in the "
+                f"matrix; {absent} are absent. Any later per-sample total over "
+                "this matrix covers only the genes present",
+                {"annotation_genes": len(ann), "present": n_present,
+                 "absent": absent, "fraction_present": ann_fraction},
+            ))
+        return ann_fraction
 
     # R-06: a sample (column) with no value at all -> fact request. Established
     # from missingness alone, so it holds even when non-numeric cells exist (a
@@ -205,11 +267,14 @@ def evidence_record(
             ))
 
     if bad:
+        n_out_of_range = sum(1 for b in bad if "reason" in b)
         records.append(_rec(
             "R-01", "R-01.non_numeric", scope, Outcome.NOT_ASSESSABLE,
-            f"{len(bad)} cell(s) are not finite numbers; representation cannot be "
-            "assessed and no cell was reinterpreted",
-            {"n_non_numeric_cells": len(bad), "examples": bad[:5]},
+            f"{len(bad)} cell(s) are not finite numbers within the supported exact "
+            f"range ({n_out_of_range} of them numeric-looking but outside it); "
+            "representation cannot be assessed and no cell was reinterpreted",
+            {"n_non_numeric_cells": len(bad), "examples": bad[:5],
+             "n_out_of_supported_range": n_out_of_range},
         ))
         add_whole_sample_na()
         # Gene-level missingness (R-06 NOTE) must still be reported even when
@@ -224,7 +289,8 @@ def evidence_record(
                 "genes excluded from the complete-case set; nothing imputed",
                 {"na_genes": na_genes, "n_na_genes": len(na_genes)},
             ))
-        return result(any_na=any_na, n_na_genes=len(na_genes), na_genes=na_genes)
+        return result(any_na=any_na, n_na_genes=len(na_genes), na_genes=na_genes,
+                      annotation_fraction=add_annotation())
 
     na_genes = [str(df.index[r]) for r in range(n_rows)
                 if any(v is _MISSING for v in parsed[r])]
@@ -248,7 +314,7 @@ def evidence_record(
             "matrix has no non-missing values; representation cannot be assessed",
             {"n_rows": n_rows, "n_columns": n_cols},
         ))
-        return result(**na_facts)
+        return result(**na_facts, annotation_fraction=add_annotation())
 
     all_int = all(v.denominator == 1 for v in values)
     any_neg = any(v < 0 for v in values)
@@ -311,25 +377,6 @@ def evidence_record(
                             "consistency check is defined for it",
                             dict(ev, declared=declared)))
 
-    ann_fraction = None
-    if annotation_genes is not None:
-        ann = {str(g) for g in annotation_genes}
-        if not ann:
-            records.append(_rec("R-05", "R-05.annotation", scope, Outcome.NOTE,
-                                "annotation gene list is empty; coverage fraction "
-                                "is undefined", {"annotation_genes": 0}))
-        else:
-            n_present = len(ann & {str(g) for g in df.index})
-            absent = len(ann) - n_present
-            ann_fraction = n_present / len(ann)
-            if absent:
-                records.append(_rec(
-                    "R-05", "R-05.annotation", scope, Outcome.LIMITATION,
-                    f"{n_present} of {len(ann)} annotation genes are present in the "
-                    f"matrix; {absent} are absent. Any later per-sample total over "
-                    "this matrix covers only the genes present",
-                    {"annotation_genes": len(ann), "present": n_present,
-                     "absent": absent, "fraction_present": ann_fraction},
-                ))
+    ann_fraction = add_annotation()
 
     return result(**facts, annotation_fraction=ann_fraction)
