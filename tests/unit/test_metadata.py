@@ -10,7 +10,12 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from bionexus.metadata import match_samples, normalize_id, tier_a_check
+from bionexus.metadata import (
+    find_metadata_duplicates,
+    match_samples,
+    normalize_id,
+    tier_a_check,
+)
 from bionexus.records import Outcome, State, combine_outcomes
 
 
@@ -460,3 +465,227 @@ def test_M03_E_tier_a_datetime_column_with_nat_is_missing():
     recs = tier_a_check(df, ["date"])
     assert recs[0].outcome == Outcome.NEED_FACT
     assert recs[0].evidence["missing_rows"] == [1]
+
+
+# ------------------------------------- I-12: duplicate metadata rows (M-01)
+def dup_records(recs):
+    return [r for r in recs if r.check_id == "M-01.duplicate_metadata_rows"]
+
+
+def mdf(ids, **cols):
+    """Metadata frame with the sample-ID column 'sample'; cells stay as given."""
+    return pd.DataFrame({"sample": ids, **cols}, dtype=object)
+
+
+def test_M01_P_metadata_duplicates_unique_ids_give_empty_list():
+    df = mdf(["S1", "S2", "S3"], condition=["a", "b", "c"])
+    assert find_metadata_duplicates(df, "sample") == []
+
+
+def test_M01_P_identical_duplicate_rows_are_need_fact_and_retained():
+    df = mdf(["S1", "S1", "S2"], condition=["ctrl", "ctrl", "case"], tissue=["skin"] * 3)
+    before = df.copy(deep=True)
+    recs = find_metadata_duplicates(df, "sample")
+    assert len(recs) == 1
+    r = recs[0]
+    assert (r.rule_id, r.check_id, r.rule_version, r.scope) == (
+        "M-01", "M-01.duplicate_metadata_rows", "0.1", "matrix")
+    assert r.outcome == Outcome.NEED_FACT
+    assert r.confidence is None and r.limitations == ()
+    ev = r.evidence
+    assert ev["id"] == "S1" and ev["id_column"] == "sample"
+    assert ev["row_positions"] == [0, 1] and ev["n_rows"] == 2
+    assert ev["classification"] == "identical" and ev["n_fields_compared"] == 2
+    assert ev["differing_fields"] == [] and ev["blank"] is False
+    assert ev["all_rows_retained"] is True
+    assert "none is removed or selected as the correct row" in ev["consequence"]
+    assert "identical" in r.decision_basis
+    assert "all 2 rows are retained, none is removed or selected as the correct row" in r.decision_basis
+    assert combine_outcomes(recs) == State.REQUIRES_MANUAL_REVIEW
+    assert df.equals(before)
+    strict(recs)
+
+
+def test_M01_N_conflicting_duplicate_rows_report_differing_fields_and_values():
+    df = mdf(["S1", "S1"], condition=["ctrl", "case"], tissue=["skin", "skin"])
+    recs = find_metadata_duplicates(df, "sample")
+    assert len(recs) == 1 and recs[0].outcome == Outcome.NEED_FACT
+    ev = recs[0].evidence
+    assert ev["classification"] == "conflicting" and ev["n_fields_compared"] == 2
+    assert ev["differing_fields"] == [
+        {"field": "condition", "position": 1, "values": ["ctrl", "case"],
+         "types": ["str", "str"]}]
+    assert "condition" in recs[0].decision_basis
+    assert "none is removed or selected as the correct row" in recs[0].decision_basis
+    assert ev["all_rows_retained"] is True
+    strict(recs)
+
+
+def test_M01_N_absent_id_column_gives_one_record_and_no_grouping():
+    df = mdf(["S1", "S1"], condition=["a", "b"])
+    recs = find_metadata_duplicates(df, "patient")
+    assert len(recs) == 1
+    r = recs[0]
+    assert r.rule_id == "M-01" and r.check_id == "M-01.metadata_id_column"
+    assert r.outcome == Outcome.NEED_FACT
+    assert r.evidence["reason"] == "absent" and r.evidence["id_column"] == "patient"
+    assert r.evidence["available_columns"] == ["sample", "condition"]
+    assert dup_records(recs) == []
+    strict(recs)
+
+
+def test_M01_N_duplicated_id_column_label_gives_one_record_and_no_grouping():
+    df = pd.DataFrame([["S1", "a", "S1"], ["S1", "b", "S1"]],
+                      columns=["sample", "condition", "sample"], dtype=object)
+    recs = find_metadata_duplicates(df, "sample")
+    assert len(recs) == 1
+    r = recs[0]
+    assert r.check_id == "M-01.metadata_id_column" and r.outcome == Outcome.NEED_FACT
+    assert r.evidence["reason"] == "duplicated_column"
+    assert r.evidence["column_positions"] == [0, 2]
+    assert dup_records(recs) == []
+    strict(recs)
+
+
+@pytest.mark.parametrize("blank", ["", "   ", None, float("nan"), pd.NA])
+def test_M01_N_blank_ids_are_reported_with_positions_and_rows_are_kept(blank):
+    df = mdf(["S1", blank, "S2"], condition=["a", "b", "c"])
+    recs = find_metadata_duplicates(df, "sample")
+    assert [r.check_id for r in recs] == ["M-01.metadata_id_column"]
+    r = recs[0]
+    assert r.rule_id == "M-01" and r.outcome == Outcome.NEED_FACT
+    assert r.evidence["reason"] == "blank_ids" and r.evidence["n_blank"] == 1
+    assert r.evidence["row_positions"] == [1] and r.evidence["n_rows"] == 3
+    assert df.shape == (3, 2)
+    strict(recs)
+
+
+def test_M01_E_repeated_blank_ids_take_part_in_grouping_and_are_flagged():
+    df = mdf(["", "", "S1"], condition=["a", "a", "b"])
+    recs = find_metadata_duplicates(df, "sample")
+    assert [r.check_id for r in recs] == [
+        "M-01.metadata_id_column", "M-01.duplicate_metadata_rows"]
+    assert recs[0].evidence["n_blank"] == 2
+    assert recs[0].evidence["row_positions"] == [0, 1]
+    ev = recs[1].evidence
+    assert ev["id"] == "" and ev["blank"] is True
+    assert ev["row_positions"] == [0, 1] and ev["classification"] == "identical"
+    strict(recs)
+
+
+def test_M01_E_duplicate_ids_agree_with_match_samples():
+    ids = ["S1", "S2", "S1", "", "S3", "", "S2"]
+    df = mdf(ids, condition=list("abcdefg"))
+    mine = [r.evidence["id"] for r in dup_records(find_metadata_duplicates(df, "sample"))]
+    theirs = by(match_samples(["S1"], ids, "A").records,
+                "M-01.duplicate_metadata_ids")[0].evidence["ids"]
+    assert mine == theirs == ["S1", "", "S2"]
+
+
+@pytest.mark.parametrize("a,b", [
+    ("ctrl", "ctrl "), ("ctrl", "Ctrl"), ("", " "), ("NA", ""), ("NA", "NaN")])
+def test_M01_E_text_values_compare_exactly(a, b):
+    df = mdf(["S1", "S1"], condition=[a, b])
+    ev = find_metadata_duplicates(df, "sample")[0].evidence
+    assert ev["classification"] == "conflicting"
+    assert ev["differing_fields"][0]["values"] == [a, b]
+
+
+@pytest.mark.parametrize("value", ["", "NA", "ctrl"])
+def test_M01_E_equal_text_values_are_identical(value):
+    df = mdf(["S1", "S1"], condition=[value, value])
+    assert find_metadata_duplicates(df, "sample")[0].evidence["classification"] == "identical"
+
+
+@pytest.mark.parametrize("a,b", [
+    (None, float("nan")),
+    (pd.NA, pd.NaT),
+    (np.datetime64("NaT", "ns"), None),
+    (pd.NaT, np.timedelta64("NaT", "s")),
+])
+def test_M01_E_typed_missing_values_form_one_class(a, b):
+    df = mdf(["S1", "S1"], condition=[a, b])
+    recs = find_metadata_duplicates(df, "sample")
+    assert recs[0].evidence["classification"] == "identical"
+    strict(recs)
+
+
+@pytest.mark.parametrize("a,b,values,types", [
+    (5, "5", ["5", "5"], ["int", "str"]),
+    (1, 1.0, ["1", "1.0"], ["int", "float"]),
+    (True, 1, ["True", "1"], ["bool", "int"]),
+    (None, "", ["None", ""], ["NoneType", "str"]),
+    ("NA", None, ["NA", "None"], ["str", "NoneType"]),
+])
+def test_M01_N_different_value_kinds_are_conflicting(a, b, values, types):
+    df = mdf(["S1", "S1"], condition=[a, b])
+    recs = find_metadata_duplicates(df, "sample")
+    ev = recs[0].evidence
+    assert ev["classification"] == "conflicting"
+    field = ev["differing_fields"][0]
+    assert field["values"] == values and field["types"] == types
+    strict(recs)
+
+
+def test_M01_E_group_of_three_reports_only_fields_that_differ():
+    df = mdf(["S1", "S2", "S1", "S1"], condition=["a", "x", "a", "b"],
+             tissue=["t", "t", "t", "t"])
+    recs = find_metadata_duplicates(df, "sample")
+    assert len(recs) == 1
+    ev = recs[0].evidence
+    assert ev["row_positions"] == [0, 2, 3] and ev["n_rows"] == 3
+    assert ev["classification"] == "conflicting"
+    assert ev["differing_fields"] == [
+        {"field": "condition", "position": 1, "values": ["a", "a", "b"],
+         "types": ["str", "str", "str"]}]
+
+
+def test_M01_E_id_column_is_not_compared_and_ids_group_by_str():
+    df = mdf([5, "5"], condition=["a", "a"])
+    recs = find_metadata_duplicates(df, "sample")
+    assert len(recs) == 1
+    ev = recs[0].evidence
+    assert ev["id"] == "5" and ev["classification"] == "identical"
+    assert ev["differing_fields"] == [] and ev["n_fields_compared"] == 1
+
+
+def test_M01_E_ids_are_case_sensitive_in_grouping():
+    df = mdf(["S1", "s1"], condition=["a", "a"])
+    assert find_metadata_duplicates(df, "sample") == []
+
+
+def test_M01_E_duplicate_labels_among_other_columns_are_reported_by_position():
+    df = pd.DataFrame([["S1", "a", "x"], ["S1", "a", "y"]],
+                      columns=["sample", "tag", "tag"], dtype=object)
+    ev = find_metadata_duplicates(df, "sample")[0].evidence
+    assert ev["n_fields_compared"] == 2
+    assert ev["differing_fields"] == [
+        {"field": "tag", "position": 2, "values": ["x", "y"], "types": ["str", "str"]}]
+
+
+def test_M01_E_row_positions_are_parsed_row_positions_not_index_labels():
+    df = mdf(["S1", "S1"], condition=["a", "a"])
+    df.index = [10, 11]
+    assert find_metadata_duplicates(df, "sample")[0].evidence["row_positions"] == [0, 1]
+
+
+def test_M01_E_metadata_duplicates_accept_list_of_row_dicts_and_scope():
+    rows = [{"sample": "S1", "c": "a"}, {"sample": "S1", "c": "b"}]
+    recs = find_metadata_duplicates(rows, "sample", scope="studyA")
+    assert recs[0].scope == "studyA" and recs[0].evidence["classification"] == "conflicting"
+    absent = find_metadata_duplicates(rows, "nope", scope="studyA")
+    assert absent[0].scope == "studyA"
+
+
+def test_M01_E_metadata_duplicates_no_rows_give_empty_list():
+    df = pd.DataFrame({"sample": pd.Series([], dtype=object)})
+    assert find_metadata_duplicates(df, "sample") == []
+
+
+def test_M01_E_metadata_duplicates_values_are_strict_json_safe():
+    df = mdf(["S1", "S1"], when=[pd.Timestamp("2020-01-01"), float("nan")])
+    recs = find_metadata_duplicates(df, "sample")
+    field = recs[0].evidence["differing_fields"][0]
+    assert field["types"] == ["Timestamp", "float"]
+    assert all(isinstance(v, str) for v in field["values"])
+    strict(recs)

@@ -16,6 +16,7 @@ from typing import Mapping
 import numpy as np
 import pandas as pd
 
+from .duplicates import _same
 from .records import AssessmentRecord, Outcome
 
 _VERSION = "0.1"
@@ -379,5 +380,120 @@ def tier_a_check(metadata, required_fields, scope="matrix") -> list[AssessmentRe
             "M-03", "M-03.tier_a", scope, Outcome.PASS,
             "all required Tier A fields are present for every sample",
             {"fields": fields, "n_samples": n_rows},
+        ))
+    return records
+
+
+def _safe_value(value):
+    """JSON-safe view of a cell: text stays text, anything else is shown by ``repr``."""
+    if isinstance(value, str):
+        return str(value)
+    try:
+        return repr(value)
+    except Exception:
+        return f"<unrepresentable {type(value).__name__}>"
+
+
+def find_metadata_duplicates(metadata, id_column, scope="matrix") -> list[AssessmentRecord]:
+    """M-01: classify duplicate metadata sample IDs as identical or conflicting rows.
+
+    Rows are grouped by ``str(id_cell)``, exactly as ``match_samples`` groups
+    duplicate metadata IDs, so both report the same IDs. Every duplicated ID gives
+    one ``need_fact`` record whether its rows are identical or conflicting. No row
+    is removed, merged or chosen as the correct one.
+
+    Rows are compared on every column except the ID column. Text cells compare
+    exactly (no trimming, no case folding). Typed cells from API callers follow the
+    exact-cell rule of ``duplicates._same``: None, NaN, ``pd.NA``, ``pd.NaT`` and
+    NumPy NaT form one missing class, and cells of different kinds are never equal
+    (``5`` and ``"5"``, ``1`` and ``1.0``). Positions are 0-based positions among the
+    parsed data rows, not file line numbers or index labels.
+
+    If the ID column is absent or its label is duplicated, one
+    ``M-01.metadata_id_column`` record is returned and nothing is grouped. Blank or
+    missing IDs (``_cell_missing``) are reported in one ``M-01.metadata_id_column``
+    record; their rows are kept and still take part in grouping. No duplicates
+    returns an empty list. ``metadata`` is never modified.
+    """
+    df = _as_table(metadata)
+    name = str(id_column)
+    labels = [str(c) for c in df.columns]
+    n_rows = len(df)
+
+    id_positions = [j for j, c in enumerate(labels) if c == name]
+    if len(id_positions) != 1:
+        if id_positions:
+            reason = "duplicated_column"
+            basis = (f"the metadata sample-ID column '{name}' appears in more than one "
+                     "column; duplicate IDs were not assessed")
+            extra = {"column_positions": id_positions}
+        else:
+            reason = "absent"
+            basis = (f"the metadata sample-ID column '{name}' is missing from the "
+                     "metadata; duplicate IDs were not assessed")
+            extra = {}
+        return [_rec(
+            "M-01", "M-01.metadata_id_column", scope, Outcome.NEED_FACT, basis,
+            {"id_column": name, "reason": reason, "n_rows": n_rows,
+             "available_columns": list(labels), **extra,
+             "consequence": "Metadata rows cannot be identified, so duplicate IDs were "
+                            "not assessed until the sample-ID column is identified."},
+        )]
+
+    id_pos = id_positions[0]
+    raw_ids = df.iloc[:, id_pos].tolist()
+    ids = [str(x) for x in raw_ids]
+    records: list[AssessmentRecord] = []
+
+    blank_rows = [i for i, x in enumerate(raw_ids) if _cell_missing(x)]
+    if blank_rows:
+        records.append(_rec(
+            "M-01", "M-01.metadata_id_column", scope, Outcome.NEED_FACT,
+            f"{len(blank_rows)} of {n_rows} metadata row(s) have a blank or missing "
+            f"sample ID in column '{name}'",
+            {"id_column": name, "reason": "blank_ids", "n_blank": len(blank_rows),
+             "row_positions": blank_rows, "n_rows": n_rows,
+             "consequence": "These rows are retained and still take part in duplicate "
+                            "grouping; their sample identity is unknown."},
+        ))
+
+    other = [(j, labels[j], df.iloc[:, j].tolist())
+             for j in range(len(labels)) if j != id_pos]
+    rows_of: dict[str, list[int]] = defaultdict(list)
+    for i, x in enumerate(ids):
+        rows_of[x].append(i)
+    blank_set = set(blank_rows)
+
+    for dup_id in _duplicated(ids):
+        rows = rows_of[dup_id]
+        differing = []
+        for j, label, values in other:
+            cells = [values[i] for i in rows]
+            if not all(_same(cells[0], c) for c in cells[1:]):
+                differing.append({
+                    "field": label, "position": j,
+                    "values": [_safe_value(c) for c in cells],
+                    "types": [type(c).__name__ for c in cells],
+                })
+        identical = not differing
+        kept = (f"all {len(rows)} rows are retained, none is removed or selected as "
+                "the correct row")
+        if identical:
+            basis = (f"duplicate metadata ID '{dup_id}' in {len(rows)} rows with "
+                     f"identical values in all {len(other)} other field(s); {kept}")
+        else:
+            names = ", ".join(f"'{d['field']}'" for d in differing)
+            basis = (f"duplicate metadata ID '{dup_id}' in {len(rows)} rows that differ "
+                     f"in {len(differing)} of {len(other)} other field(s): {names}; {kept}")
+        records.append(_rec(
+            "M-01", "M-01.duplicate_metadata_rows", scope, Outcome.NEED_FACT, basis,
+            {"id": dup_id, "id_column": name, "row_positions": list(rows),
+             "n_rows": len(rows),
+             "classification": "identical" if identical else "conflicting",
+             "n_fields_compared": len(other), "differing_fields": differing,
+             "blank": any(i in blank_set for i in rows),
+             "all_rows_retained": True,
+             "consequence": f"{kept[0].upper()}{kept[1:]}; which row applies is "
+                            "unresolved."},
         ))
     return records
