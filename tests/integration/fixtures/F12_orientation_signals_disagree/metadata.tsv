@@ -1,0 +1,5 @@
+sample_id	condition	tissue	organism
+S1	ctrl	skin	human
+S2	case	skin	human
+S3	ctrl	skin	human
+S4	case	skin	human

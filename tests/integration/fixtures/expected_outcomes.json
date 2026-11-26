@@ -1,0 +1,1358 @@
+{
+  "fixtures": [
+    {
+      "id": "F01",
+      "name": "clean_human_counts",
+      "matrix": "matrix.tsv",
+      "metadata": "metadata.tsv",
+      "annotation_genes": null,
+      "declared": {
+        "organism": "human",
+        "technology": "RNA-seq",
+        "level": "gene",
+        "id_type": "ensembl-gene",
+        "representation": "R1",
+        "study": "StudyA"
+      },
+      "expected_state": "compatible",
+      "required_records": [
+        {
+          "rule_id": "G-02",
+          "outcome": "pass",
+          "check_id": "G-02.parse"
+        },
+        {
+          "rule_id": "G-01",
+          "outcome": "pass",
+          "check_id": "G-01.organism"
+        },
+        {
+          "rule_id": "G-01",
+          "outcome": "pass",
+          "check_id": "G-01.technology"
+        },
+        {
+          "rule_id": "G-01",
+          "outcome": "pass",
+          "check_id": "G-01.level"
+        },
+        {
+          "rule_id": "G-03",
+          "outcome": "pass",
+          "check_id": "G-03.orientation"
+        },
+        {
+          "rule_id": "M-01",
+          "outcome": "pass",
+          "check_id": "M-01.match"
+        },
+        {
+          "rule_id": "M-03",
+          "outcome": "pass",
+          "check_id": "M-03.tier_a"
+        },
+        {
+          "rule_id": "R-01",
+          "outcome": "pass",
+          "check_id": "R-01.declared_r1"
+        },
+        {
+          "rule_id": "M-04",
+          "outcome": "pass",
+          "check_id": "M-04.none"
+        },
+        {
+          "rule_id": "G-04",
+          "outcome": "pass",
+          "check_id": "G-04.verify_unchanged"
+        }
+      ],
+      "forbidden_rule_ids": [
+        "J-05"
+      ],
+      "expect_oriented_matrix": true,
+      "expect_sample_matches": true,
+      "expect_representation_evidence": true,
+      "expect_transposed": false,
+      "dir": "F01_clean_human_counts",
+      "file_hashes": {
+        "matrix.tsv": "27b5229637441077ea19b0fbba80e1c0feb8cf4f665c832aa445129fc7d4a647",
+        "metadata.tsv": "c8ffe92b737189ae6ca160d3af842ae267e69b770f51d08324b784d7c519f225"
+      },
+      "metadata_id_column": "sample_id"
+    },
+    {
+      "id": "F02",
+      "name": "csv_bom_quoted_counts",
+      "matrix": "matrix.csv",
+      "metadata": "metadata.tsv",
+      "annotation_genes": null,
+      "declared": {
+        "organism": "human",
+        "technology": "RNA-seq",
+        "level": "gene",
+        "id_type": "ensembl-gene",
+        "representation": "R1",
+        "study": "StudyA"
+      },
+      "expected_state": "compatible",
+      "required_records": [
+        {
+          "rule_id": "G-02",
+          "outcome": "pass",
+          "check_id": "G-02.parse"
+        },
+        {
+          "rule_id": "G-03",
+          "outcome": "pass",
+          "check_id": "G-03.orientation"
+        },
+        {
+          "rule_id": "R-01",
+          "outcome": "pass",
+          "check_id": "R-01.declared_r1"
+        },
+        {
+          "rule_id": "G-04",
+          "outcome": "pass",
+          "check_id": "G-04.verify_unchanged"
+        }
+      ],
+      "forbidden_rule_ids": [
+        "J-05"
+      ],
+      "expect_oriented_matrix": true,
+      "expect_sample_matches": true,
+      "expect_representation_evidence": true,
+      "expect_transposed": false,
+      "dir": "F02_csv_bom_quoted_counts",
+      "file_hashes": {
+        "matrix.csv": "c3c9cd9f664b8aa96fd85a928ef079043189e84f7928a296d7463e58177cc3f1",
+        "metadata.tsv": "c8ffe92b737189ae6ca160d3af842ae267e69b770f51d08324b784d7c519f225"
+      },
+      "metadata_id_column": "sample_id"
+    },
+    {
+      "id": "F03",
+      "name": "ragged_header_counts",
+      "matrix": "matrix.tsv",
+      "metadata": "metadata.tsv",
+      "annotation_genes": null,
+      "declared": {
+        "organism": "human",
+        "technology": "RNA-seq",
+        "level": "gene",
+        "id_type": "ensembl-gene",
+        "representation": "R1",
+        "study": "StudyA"
+      },
+      "expected_state": "compatible",
+      "required_records": [
+        {
+          "rule_id": "G-02",
+          "outcome": "pass",
+          "check_id": "G-02.parse"
+        },
+        {
+          "rule_id": "G-02",
+          "outcome": "resolved",
+          "check_id": "G-02.ragged_header"
+        },
+        {
+          "rule_id": "R-01",
+          "outcome": "pass",
+          "check_id": "R-01.declared_r1"
+        }
+      ],
+      "forbidden_rule_ids": [
+        "J-05"
+      ],
+      "expect_oriented_matrix": true,
+      "expect_sample_matches": true,
+      "expect_representation_evidence": true,
+      "expect_transposed": false,
+      "dir": "F03_ragged_header_counts",
+      "file_hashes": {
+        "matrix.tsv": "11e3a003d3c3173d8ba21dfad271bed324b04ec72ec20c54a54f8b3292cffadb",
+        "metadata.tsv": "c8ffe92b737189ae6ca160d3af842ae267e69b770f51d08324b784d7c519f225"
+      },
+      "metadata_id_column": "sample_id"
+    },
+    {
+      "id": "F04",
+      "name": "binary_unreadable",
+      "matrix": "matrix.bin",
+      "metadata": "metadata.tsv",
+      "annotation_genes": null,
+      "declared": {
+        "organism": "human",
+        "technology": "RNA-seq",
+        "level": "gene",
+        "id_type": "ensembl-gene",
+        "representation": "R1",
+        "study": "StudyA"
+      },
+      "expected_state": "incompatible",
+      "required_records": [
+        {
+          "rule_id": "G-02",
+          "outcome": "blocked",
+          "check_id": "G-02.parse"
+        },
+        {
+          "rule_id": "G-04",
+          "outcome": "pass",
+          "check_id": "G-04.verify_unchanged"
+        }
+      ],
+      "forbidden_rule_ids": [
+        "G-01",
+        "G-03",
+        "M-01",
+        "M-03",
+        "R-01",
+        "M-04",
+        "J-05"
+      ],
+      "expect_oriented_matrix": false,
+      "expect_sample_matches": false,
+      "expect_representation_evidence": false,
+      "expect_transposed": false,
+      "dir": "F04_binary_unreadable",
+      "file_hashes": {
+        "matrix.bin": "2c843468478cc12193b1a41a4c3c446af268976df9033159261b8129d33bcf8e",
+        "metadata.tsv": "c8ffe92b737189ae6ca160d3af842ae267e69b770f51d08324b784d7c519f225"
+      },
+      "metadata_id_column": "sample_id"
+    },
+    {
+      "id": "F05",
+      "name": "ambiguous_delimiter",
+      "matrix": "matrix.txt",
+      "metadata": "metadata.tsv",
+      "annotation_genes": null,
+      "declared": {
+        "organism": "human",
+        "technology": "RNA-seq",
+        "level": "gene",
+        "id_type": "ensembl-gene",
+        "representation": "R1",
+        "study": "StudyA"
+      },
+      "expected_state": "requires_manual_review",
+      "required_records": [
+        {
+          "rule_id": "G-02",
+          "outcome": "not_assessable",
+          "check_id": "G-02.parse"
+        },
+        {
+          "rule_id": "G-04",
+          "outcome": "pass",
+          "check_id": "G-04.verify_unchanged"
+        }
+      ],
+      "forbidden_rule_ids": [
+        "G-01",
+        "G-03",
+        "M-01",
+        "M-03",
+        "R-01",
+        "M-04",
+        "J-05"
+      ],
+      "expect_oriented_matrix": false,
+      "expect_sample_matches": false,
+      "expect_representation_evidence": false,
+      "expect_transposed": false,
+      "dir": "F05_ambiguous_delimiter",
+      "file_hashes": {
+        "matrix.txt": "1a6111118861a84389c4d6570f333b5612ebd94d5d6a510d0e36cca754b5871f",
+        "metadata.tsv": "c8ffe92b737189ae6ca160d3af842ae267e69b770f51d08324b784d7c519f225"
+      },
+      "metadata_id_column": "sample_id"
+    },
+    {
+      "id": "F06",
+      "name": "wrong_tech_microarray",
+      "matrix": "matrix.tsv",
+      "metadata": "metadata.tsv",
+      "annotation_genes": null,
+      "declared": {
+        "organism": "human",
+        "technology": "microarray",
+        "level": "gene",
+        "study": "StudyA"
+      },
+      "expected_state": "incompatible",
+      "required_records": [
+        {
+          "rule_id": "G-01",
+          "outcome": "blocked",
+          "check_id": "G-01.technology"
+        },
+        {
+          "rule_id": "G-04",
+          "outcome": "pass",
+          "check_id": "G-04.verify_unchanged"
+        }
+      ],
+      "forbidden_rule_ids": [
+        "G-03",
+        "M-01",
+        "M-03",
+        "R-01",
+        "R-02",
+        "M-04",
+        "J-05"
+      ],
+      "expect_oriented_matrix": false,
+      "expect_sample_matches": false,
+      "expect_representation_evidence": false,
+      "expect_transposed": false,
+      "dir": "F06_wrong_tech_microarray",
+      "file_hashes": {
+        "matrix.tsv": "27b5229637441077ea19b0fbba80e1c0feb8cf4f665c832aa445129fc7d4a647",
+        "metadata.tsv": "c8ffe92b737189ae6ca160d3af842ae267e69b770f51d08324b784d7c519f225"
+      },
+      "metadata_id_column": "sample_id"
+    },
+    {
+      "id": "F07",
+      "name": "wrong_organism_mouse",
+      "matrix": "matrix.tsv",
+      "metadata": "metadata.tsv",
+      "annotation_genes": null,
+      "declared": {
+        "organism": "mouse",
+        "technology": "RNA-seq",
+        "level": "gene",
+        "study": "StudyA"
+      },
+      "expected_state": "incompatible",
+      "required_records": [
+        {
+          "rule_id": "G-01",
+          "outcome": "blocked",
+          "check_id": "G-01.organism"
+        }
+      ],
+      "forbidden_rule_ids": [
+        "G-03",
+        "M-01",
+        "M-03",
+        "R-01",
+        "M-04",
+        "J-05"
+      ],
+      "expect_oriented_matrix": false,
+      "expect_sample_matches": false,
+      "expect_representation_evidence": false,
+      "expect_transposed": false,
+      "dir": "F07_wrong_organism_mouse",
+      "file_hashes": {
+        "matrix.tsv": "27b5229637441077ea19b0fbba80e1c0feb8cf4f665c832aa445129fc7d4a647",
+        "metadata.tsv": "c8ffe92b737189ae6ca160d3af842ae267e69b770f51d08324b784d7c519f225"
+      },
+      "metadata_id_column": "sample_id"
+    },
+    {
+      "id": "F08",
+      "name": "wrong_level_transcript",
+      "matrix": "matrix.tsv",
+      "metadata": "metadata.tsv",
+      "annotation_genes": null,
+      "declared": {
+        "organism": "human",
+        "technology": "RNA-seq",
+        "level": "transcript",
+        "study": "StudyA"
+      },
+      "expected_state": "incompatible",
+      "required_records": [
+        {
+          "rule_id": "G-01",
+          "outcome": "blocked",
+          "check_id": "G-01.level"
+        }
+      ],
+      "forbidden_rule_ids": [
+        "G-03",
+        "M-01",
+        "M-03",
+        "R-01",
+        "M-04",
+        "J-05"
+      ],
+      "expect_oriented_matrix": false,
+      "expect_sample_matches": false,
+      "expect_representation_evidence": false,
+      "expect_transposed": false,
+      "dir": "F08_wrong_level_transcript",
+      "file_hashes": {
+        "matrix.tsv": "27b5229637441077ea19b0fbba80e1c0feb8cf4f665c832aa445129fc7d4a647",
+        "metadata.tsv": "c8ffe92b737189ae6ca160d3af842ae267e69b770f51d08324b784d7c519f225"
+      },
+      "metadata_id_column": "sample_id"
+    },
+    {
+      "id": "F09",
+      "name": "rnaseq_probe_mismatch",
+      "matrix": "matrix.tsv",
+      "metadata": "metadata.tsv",
+      "annotation_genes": null,
+      "declared": {
+        "organism": "human",
+        "technology": "RNA-seq",
+        "level": "gene",
+        "id_type": "probe",
+        "study": "StudyA"
+      },
+      "expected_state": "requires_manual_review",
+      "required_records": [
+        {
+          "rule_id": "G-01",
+          "outcome": "need_fact",
+          "check_id": "G-01.consistency"
+        },
+        {
+          "rule_id": "R-02",
+          "outcome": "need_fact",
+          "check_id": "R-02.undeclared"
+        }
+      ],
+      "forbidden_rule_ids": [
+        "J-05"
+      ],
+      "expect_oriented_matrix": true,
+      "expect_sample_matches": true,
+      "expect_representation_evidence": true,
+      "expect_transposed": false,
+      "dir": "F09_rnaseq_probe_mismatch",
+      "file_hashes": {
+        "matrix.tsv": "5e180cb3a466f85bec11286bca07bedf090ed066bc73b3fe7239afcdf9c0a08f",
+        "metadata.tsv": "c8ffe92b737189ae6ca160d3af842ae267e69b770f51d08324b784d7c519f225"
+      },
+      "metadata_id_column": "sample_id"
+    },
+    {
+      "id": "F10",
+      "name": "transposed_autofix",
+      "matrix": "matrix.tsv",
+      "metadata": "metadata.tsv",
+      "annotation_genes": null,
+      "declared": {
+        "organism": "human",
+        "technology": "RNA-seq",
+        "level": "gene",
+        "id_type": "ensembl-gene",
+        "representation": "R1",
+        "study": "StudyA"
+      },
+      "expected_state": "compatible",
+      "required_records": [
+        {
+          "rule_id": "G-03",
+          "outcome": "resolved",
+          "check_id": "G-03.orientation"
+        },
+        {
+          "rule_id": "M-01",
+          "outcome": "pass",
+          "check_id": "M-01.match"
+        },
+        {
+          "rule_id": "R-01",
+          "outcome": "pass",
+          "check_id": "R-01.declared_r1"
+        }
+      ],
+      "forbidden_rule_ids": [
+        "J-05"
+      ],
+      "expect_oriented_matrix": true,
+      "expect_sample_matches": true,
+      "expect_representation_evidence": true,
+      "expect_transposed": true,
+      "dir": "F10_transposed_autofix",
+      "file_hashes": {
+        "matrix.tsv": "2a83916535b11268c14cd648df4d1dd98ffd4b122b0e943060be23b203ec2b4c",
+        "metadata.tsv": "c8ffe92b737189ae6ca160d3af842ae267e69b770f51d08324b784d7c519f225"
+      },
+      "metadata_id_column": "sample_id"
+    },
+    {
+      "id": "F11",
+      "name": "ambiguous_square_matrix",
+      "matrix": "matrix.tsv",
+      "metadata": "metadata.tsv",
+      "annotation_genes": null,
+      "declared": {
+        "organism": "human",
+        "technology": "RNA-seq",
+        "level": "gene",
+        "id_type": "ensembl-gene",
+        "representation": "R1",
+        "study": "StudyA"
+      },
+      "expected_state": "requires_manual_review",
+      "required_records": [
+        {
+          "rule_id": "G-03",
+          "outcome": "need_fact",
+          "check_id": "G-03.orientation"
+        },
+        {
+          "rule_id": "M-03",
+          "outcome": "pass",
+          "check_id": "M-03.tier_a"
+        }
+      ],
+      "forbidden_rule_ids": [
+        "M-01",
+        "M-02",
+        "R-01",
+        "R-02",
+        "M-04",
+        "J-05"
+      ],
+      "expect_oriented_matrix": false,
+      "expect_sample_matches": false,
+      "expect_representation_evidence": false,
+      "expect_transposed": false,
+      "dir": "F11_ambiguous_square_matrix",
+      "file_hashes": {
+        "matrix.tsv": "d550fbcb0b1a8a64e3da39692e1731c78ad875b1e965b557500240ccf4e62473",
+        "metadata.tsv": "3bdd1c7d44b1a7d22b362a87f3f053831bed2393fc84aa65ec19d9eebfd46932"
+      },
+      "metadata_id_column": "sample_id"
+    },
+    {
+      "id": "F12",
+      "name": "orientation_signals_disagree",
+      "matrix": "matrix.tsv",
+      "metadata": "metadata.tsv",
+      "annotation_genes": null,
+      "declared": {
+        "organism": "human",
+        "technology": "RNA-seq",
+        "level": "gene",
+        "id_type": "ensembl-gene",
+        "representation": "R1",
+        "study": "StudyA"
+      },
+      "expected_state": "requires_manual_review",
+      "required_records": [
+        {
+          "rule_id": "G-03",
+          "outcome": "need_fact",
+          "check_id": "G-03.orientation"
+        },
+        {
+          "rule_id": "M-03",
+          "outcome": "pass",
+          "check_id": "M-03.tier_a"
+        }
+      ],
+      "forbidden_rule_ids": [
+        "M-01",
+        "M-02",
+        "R-01",
+        "R-02",
+        "M-04",
+        "J-05"
+      ],
+      "expect_oriented_matrix": false,
+      "expect_sample_matches": false,
+      "expect_representation_evidence": false,
+      "expect_transposed": false,
+      "dir": "F12_orientation_signals_disagree",
+      "file_hashes": {
+        "matrix.tsv": "78c352406bd0c0a170a70a9e82162f16332b157779eedb909a5410f6094551a9",
+        "metadata.tsv": "fd530de45fa05d40aac6606c51ff6323becd791725bb64eef7235ebc33c73012"
+      },
+      "metadata_id_column": "sample_id"
+    },
+    {
+      "id": "F13",
+      "name": "non_integer_undeclared",
+      "matrix": "matrix.tsv",
+      "metadata": "metadata.tsv",
+      "annotation_genes": null,
+      "declared": {
+        "organism": "human",
+        "technology": "RNA-seq",
+        "level": "gene",
+        "id_type": "ensembl-gene",
+        "study": "StudyA"
+      },
+      "expected_state": "requires_manual_review",
+      "required_records": [
+        {
+          "rule_id": "R-02",
+          "outcome": "need_fact",
+          "check_id": "R-02.undeclared"
+        }
+      ],
+      "forbidden_rule_ids": [
+        "J-05"
+      ],
+      "expect_oriented_matrix": true,
+      "expect_sample_matches": true,
+      "expect_representation_evidence": true,
+      "expect_transposed": false,
+      "dir": "F13_non_integer_undeclared",
+      "file_hashes": {
+        "matrix.tsv": "aa61fc0dd923eff88aff00ab828b5a7c8e685053f77118540f6314897603083a",
+        "metadata.tsv": "c8ffe92b737189ae6ca160d3af842ae267e69b770f51d08324b784d7c519f225"
+      },
+      "metadata_id_column": "sample_id"
+    },
+    {
+      "id": "F14",
+      "name": "declared_r1_non_integer",
+      "matrix": "matrix.tsv",
+      "metadata": "metadata.tsv",
+      "annotation_genes": null,
+      "declared": {
+        "organism": "human",
+        "technology": "RNA-seq",
+        "level": "gene",
+        "id_type": "ensembl-gene",
+        "representation": "R1",
+        "study": "StudyA"
+      },
+      "expected_state": "incompatible",
+      "required_records": [
+        {
+          "rule_id": "R-01",
+          "outcome": "blocked",
+          "check_id": "R-01.declared_r1"
+        }
+      ],
+      "forbidden_rule_ids": [
+        "J-05"
+      ],
+      "expect_oriented_matrix": true,
+      "expect_sample_matches": true,
+      "expect_representation_evidence": true,
+      "expect_transposed": false,
+      "dir": "F14_declared_r1_non_integer",
+      "file_hashes": {
+        "matrix.tsv": "aa61fc0dd923eff88aff00ab828b5a7c8e685053f77118540f6314897603083a",
+        "metadata.tsv": "c8ffe92b737189ae6ca160d3af842ae267e69b770f51d08324b784d7c519f225"
+      },
+      "metadata_id_column": "sample_id"
+    },
+    {
+      "id": "F15",
+      "name": "cpm_like_undeclared",
+      "matrix": "matrix.tsv",
+      "metadata": "metadata.tsv",
+      "annotation_genes": null,
+      "declared": {
+        "organism": "human",
+        "technology": "RNA-seq",
+        "level": "gene",
+        "id_type": "ensembl-gene",
+        "study": "StudyA"
+      },
+      "expected_state": "requires_manual_review",
+      "required_records": [
+        {
+          "rule_id": "R-02",
+          "outcome": "need_fact",
+          "check_id": "R-02.undeclared"
+        }
+      ],
+      "forbidden_rule_ids": [
+        "R-03",
+        "J-05"
+      ],
+      "expect_oriented_matrix": true,
+      "expect_sample_matches": true,
+      "expect_representation_evidence": true,
+      "expect_transposed": false,
+      "dir": "F15_cpm_like_undeclared",
+      "file_hashes": {
+        "matrix.tsv": "c47877cb1b6ab901f9b99abbf8d78225f602046142a1b680ff3a34c720e5f3d6",
+        "metadata.tsv": "c8ffe92b737189ae6ca160d3af842ae267e69b770f51d08324b784d7c519f225"
+      },
+      "metadata_id_column": "sample_id"
+    },
+    {
+      "id": "F16",
+      "name": "tpm_like_declared_linear",
+      "matrix": "matrix.tsv",
+      "metadata": "metadata.tsv",
+      "annotation_genes": null,
+      "declared": {
+        "organism": "human",
+        "technology": "RNA-seq",
+        "level": "gene",
+        "id_type": "ensembl-gene",
+        "representation": "linear",
+        "study": "StudyA"
+      },
+      "expected_state": "compatible",
+      "required_records": [
+        {
+          "rule_id": "R-02",
+          "outcome": "pass",
+          "check_id": "R-02.declared_linear"
+        }
+      ],
+      "forbidden_rule_ids": [
+        "R-03",
+        "J-05"
+      ],
+      "expect_oriented_matrix": true,
+      "expect_sample_matches": true,
+      "expect_representation_evidence": true,
+      "expect_transposed": false,
+      "dir": "F16_tpm_like_declared_linear",
+      "file_hashes": {
+        "matrix.tsv": "c47877cb1b6ab901f9b99abbf8d78225f602046142a1b680ff3a34c720e5f3d6",
+        "metadata.tsv": "c8ffe92b737189ae6ca160d3af842ae267e69b770f51d08324b784d7c519f225"
+      },
+      "metadata_id_column": "sample_id"
+    },
+    {
+      "id": "F17",
+      "name": "rpkm_like_undeclared",
+      "matrix": "matrix.tsv",
+      "metadata": "metadata.tsv",
+      "annotation_genes": null,
+      "declared": {
+        "organism": "human",
+        "technology": "RNA-seq",
+        "level": "gene",
+        "id_type": "ensembl-gene",
+        "study": "StudyA"
+      },
+      "expected_state": "requires_manual_review",
+      "required_records": [
+        {
+          "rule_id": "R-02",
+          "outcome": "need_fact",
+          "check_id": "R-02.undeclared"
+        }
+      ],
+      "forbidden_rule_ids": [
+        "R-03",
+        "J-05"
+      ],
+      "expect_oriented_matrix": true,
+      "expect_sample_matches": true,
+      "expect_representation_evidence": true,
+      "expect_transposed": false,
+      "dir": "F17_rpkm_like_undeclared",
+      "file_hashes": {
+        "matrix.tsv": "e1904d868ad187108bc8f18214b908aa1ee645c20a5c6af9e8be3df216af4c93",
+        "metadata.tsv": "c8ffe92b737189ae6ca160d3af842ae267e69b770f51d08324b784d7c519f225"
+      },
+      "metadata_id_column": "sample_id"
+    },
+    {
+      "id": "F18",
+      "name": "log_scale_negatives_linear",
+      "matrix": "matrix.tsv",
+      "metadata": "metadata.tsv",
+      "annotation_genes": null,
+      "declared": {
+        "organism": "human",
+        "technology": "RNA-seq",
+        "level": "gene",
+        "id_type": "ensembl-gene",
+        "representation": "linear",
+        "study": "StudyA"
+      },
+      "expected_state": "requires_manual_review",
+      "required_records": [
+        {
+          "rule_id": "R-02",
+          "outcome": "need_fact",
+          "check_id": "R-02.declared_linear"
+        }
+      ],
+      "forbidden_rule_ids": [
+        "J-05"
+      ],
+      "expect_oriented_matrix": true,
+      "expect_sample_matches": true,
+      "expect_representation_evidence": true,
+      "expect_transposed": false,
+      "dir": "F18_log_scale_negatives_linear",
+      "file_hashes": {
+        "matrix.tsv": "cda37db649525980376910e14ce43bbbee2b4f413a9a400447927c024d48cf78",
+        "metadata.tsv": "c8ffe92b737189ae6ca160d3af842ae267e69b770f51d08324b784d7c519f225"
+      },
+      "metadata_id_column": "sample_id"
+    },
+    {
+      "id": "F19",
+      "name": "partial_na_no_impute",
+      "matrix": "matrix.tsv",
+      "metadata": "metadata.tsv",
+      "annotation_genes": null,
+      "declared": {
+        "organism": "human",
+        "technology": "RNA-seq",
+        "level": "gene",
+        "id_type": "ensembl-gene",
+        "representation": "R1",
+        "study": "StudyA"
+      },
+      "expected_state": "compatible",
+      "required_records": [
+        {
+          "rule_id": "R-06",
+          "outcome": "note",
+          "check_id": "R-06.na_genes"
+        },
+        {
+          "rule_id": "R-01",
+          "outcome": "pass",
+          "check_id": "R-01.declared_r1"
+        }
+      ],
+      "forbidden_rule_ids": [
+        "J-05"
+      ],
+      "expect_oriented_matrix": true,
+      "expect_sample_matches": true,
+      "expect_representation_evidence": true,
+      "expect_transposed": false,
+      "dir": "F19_partial_na_no_impute",
+      "file_hashes": {
+        "matrix.tsv": "360f67b11c8f0ab07fb2aba70a2808b17db3cdcf4662dea0fa26715386e20de2",
+        "metadata.tsv": "c8ffe92b737189ae6ca160d3af842ae267e69b770f51d08324b784d7c519f225"
+      },
+      "metadata_id_column": "sample_id"
+    },
+    {
+      "id": "F20",
+      "name": "whole_sample_na",
+      "matrix": "matrix.tsv",
+      "metadata": "metadata.tsv",
+      "annotation_genes": null,
+      "declared": {
+        "organism": "human",
+        "technology": "RNA-seq",
+        "level": "gene",
+        "id_type": "ensembl-gene",
+        "representation": "R1",
+        "study": "StudyA"
+      },
+      "expected_state": "requires_manual_review",
+      "required_records": [
+        {
+          "rule_id": "R-06",
+          "outcome": "need_fact",
+          "check_id": "R-06.whole_sample_na"
+        },
+        {
+          "rule_id": "R-06",
+          "outcome": "note",
+          "check_id": "R-06.na_genes"
+        }
+      ],
+      "forbidden_rule_ids": [
+        "J-05"
+      ],
+      "expect_oriented_matrix": true,
+      "expect_sample_matches": true,
+      "expect_representation_evidence": true,
+      "expect_transposed": false,
+      "dir": "F20_whole_sample_na",
+      "file_hashes": {
+        "matrix.tsv": "7ab3d94e082eb575e5be1a3f08f45f343ca33e6299068544629eab8a6af98bc2",
+        "metadata.tsv": "3bdd1c7d44b1a7d22b362a87f3f053831bed2393fc84aa65ec19d9eebfd46932"
+      },
+      "metadata_id_column": "sample_id"
+    },
+    {
+      "id": "F21",
+      "name": "universe_subset_limitation",
+      "matrix": "matrix.tsv",
+      "metadata": "metadata.tsv",
+      "annotation_genes": "annotation_genes.txt",
+      "declared": {
+        "organism": "human",
+        "technology": "RNA-seq",
+        "level": "gene",
+        "id_type": "ensembl-gene",
+        "representation": "R1",
+        "study": "StudyA"
+      },
+      "expected_state": "compatible_with_warnings",
+      "required_records": [
+        {
+          "rule_id": "R-05",
+          "outcome": "limitation",
+          "check_id": "R-05.annotation"
+        },
+        {
+          "rule_id": "R-01",
+          "outcome": "pass",
+          "check_id": "R-01.declared_r1"
+        }
+      ],
+      "forbidden_rule_ids": [
+        "J-05"
+      ],
+      "expect_oriented_matrix": true,
+      "expect_sample_matches": true,
+      "expect_representation_evidence": true,
+      "expect_transposed": false,
+      "dir": "F21_universe_subset_limitation",
+      "file_hashes": {
+        "matrix.tsv": "27b5229637441077ea19b0fbba80e1c0feb8cf4f665c832aa445129fc7d4a647",
+        "metadata.tsv": "c8ffe92b737189ae6ca160d3af842ae267e69b770f51d08324b784d7c519f225",
+        "annotation_genes.txt": "b6fe268c203ce5afda57e93c9d33f26bfb656579a74a9a6ef4957c3d3f0a9231"
+      },
+      "metadata_id_column": "sample_id"
+    },
+    {
+      "id": "F22",
+      "name": "normalized_and_fuzzy_names",
+      "matrix": "matrix.tsv",
+      "metadata": "metadata.tsv",
+      "annotation_genes": null,
+      "declared": {
+        "organism": "human",
+        "technology": "RNA-seq",
+        "level": "gene",
+        "id_type": "ensembl-gene",
+        "representation": "R1",
+        "study": "StudyA"
+      },
+      "expected_state": "requires_manual_review",
+      "required_records": [
+        {
+          "rule_id": "G-03",
+          "outcome": "pass",
+          "check_id": "G-03.orientation"
+        },
+        {
+          "rule_id": "M-01",
+          "outcome": "pass",
+          "check_id": "M-01.match"
+        },
+        {
+          "rule_id": "M-02",
+          "outcome": "need_fact",
+          "check_id": "M-02.candidates"
+        }
+      ],
+      "forbidden_rule_ids": [
+        "J-05"
+      ],
+      "expect_oriented_matrix": true,
+      "expect_sample_matches": true,
+      "expect_representation_evidence": true,
+      "expect_transposed": false,
+      "dir": "F22_normalized_and_fuzzy_names",
+      "file_hashes": {
+        "matrix.tsv": "f4c5c9b840b71b045b04710cac40ef3888a944a17ff03885b10751d937bd0bfb",
+        "metadata.tsv": "c0a524a8680c42dfc22ca846ac8aad9b3689f14710f3aacaf7f3e06918d42d3f"
+      },
+      "metadata_id_column": "sample_id"
+    },
+    {
+      "id": "F23",
+      "name": "missing_tier_a_condition",
+      "matrix": "matrix.tsv",
+      "metadata": "metadata.tsv",
+      "annotation_genes": null,
+      "declared": {
+        "organism": "human",
+        "technology": "RNA-seq",
+        "level": "gene",
+        "id_type": "ensembl-gene",
+        "representation": "R1",
+        "study": "StudyA"
+      },
+      "expected_state": "requires_manual_review",
+      "required_records": [
+        {
+          "rule_id": "M-03",
+          "outcome": "need_fact",
+          "check_id": "M-03.condition"
+        }
+      ],
+      "forbidden_rule_ids": [
+        "J-05"
+      ],
+      "expect_oriented_matrix": true,
+      "expect_sample_matches": true,
+      "expect_representation_evidence": true,
+      "expect_transposed": false,
+      "dir": "F23_missing_tier_a_condition",
+      "file_hashes": {
+        "matrix.tsv": "27b5229637441077ea19b0fbba80e1c0feb8cf4f665c832aa445129fc7d4a647",
+        "metadata.tsv": "a714f1b9340347092be2c775646e7f831953d191d8ffb6af0aea0c5771919b4a"
+      },
+      "metadata_id_column": "sample_id"
+    },
+    {
+      "id": "F24",
+      "name": "missing_sample_id_column",
+      "matrix": "matrix.tsv",
+      "metadata": "metadata.tsv",
+      "annotation_genes": null,
+      "declared": {
+        "organism": "human",
+        "technology": "RNA-seq",
+        "level": "gene",
+        "id_type": "ensembl-gene",
+        "representation": "R1",
+        "study": "StudyA"
+      },
+      "expected_state": "requires_manual_review",
+      "required_records": [
+        {
+          "rule_id": "M-01",
+          "outcome": "need_fact",
+          "check_id": "M-01.metadata_id_column"
+        },
+        {
+          "rule_id": "G-03",
+          "outcome": "pass",
+          "check_id": "G-03.orientation"
+        },
+        {
+          "rule_id": "M-03",
+          "outcome": "pass",
+          "check_id": "M-03.tier_a"
+        },
+        {
+          "rule_id": "R-01",
+          "outcome": "pass",
+          "check_id": "R-01.declared_r1"
+        },
+        {
+          "rule_id": "M-04",
+          "outcome": "pass",
+          "check_id": "M-04.none"
+        }
+      ],
+      "forbidden_rule_ids": [
+        "M-02",
+        "J-05"
+      ],
+      "expect_oriented_matrix": true,
+      "expect_sample_matches": false,
+      "expect_representation_evidence": true,
+      "expect_transposed": false,
+      "dir": "F24_missing_sample_id_column",
+      "file_hashes": {
+        "matrix.tsv": "27b5229637441077ea19b0fbba80e1c0feb8cf4f665c832aa445129fc7d4a647",
+        "metadata.tsv": "338caf5fbc8f86837983caa1e35cf3c517500647f2ef8b76bf6fe445fdb2f8ed"
+      },
+      "metadata_id_column": "sample_id"
+    },
+    {
+      "id": "F25",
+      "name": "identical_duplicate_genes",
+      "matrix": "matrix.tsv",
+      "metadata": "metadata.tsv",
+      "annotation_genes": null,
+      "declared": {
+        "organism": "human",
+        "technology": "RNA-seq",
+        "level": "gene",
+        "id_type": "ensembl-gene",
+        "representation": "R1",
+        "study": "StudyA"
+      },
+      "expected_state": "compatible",
+      "required_records": [
+        {
+          "rule_id": "M-04",
+          "outcome": "note",
+          "check_id": "M-04.duplicate_genes"
+        },
+        {
+          "rule_id": "R-01",
+          "outcome": "pass",
+          "check_id": "R-01.declared_r1"
+        }
+      ],
+      "forbidden_rule_ids": [
+        "J-05"
+      ],
+      "expect_oriented_matrix": true,
+      "expect_sample_matches": true,
+      "expect_representation_evidence": true,
+      "expect_transposed": false,
+      "dir": "F25_identical_duplicate_genes",
+      "file_hashes": {
+        "matrix.tsv": "b5c57caa47c243c571023f7741015cb559e214b3da4d4397ef90ad9bee4492da",
+        "metadata.tsv": "c8ffe92b737189ae6ca160d3af842ae267e69b770f51d08324b784d7c519f225"
+      },
+      "metadata_id_column": "sample_id"
+    },
+    {
+      "id": "F26",
+      "name": "conflicting_duplicates",
+      "matrix": "matrix.tsv",
+      "metadata": "metadata.tsv",
+      "annotation_genes": null,
+      "declared": {
+        "organism": "human",
+        "technology": "RNA-seq",
+        "level": "gene",
+        "id_type": "ensembl-gene",
+        "representation": "R1",
+        "study": "StudyA"
+      },
+      "expected_state": "requires_manual_review",
+      "required_records": [
+        {
+          "rule_id": "M-04",
+          "outcome": "need_fact",
+          "check_id": "M-04.duplicate_samples"
+        },
+        {
+          "rule_id": "M-04",
+          "outcome": "need_fact",
+          "check_id": "M-04.duplicate_genes"
+        },
+        {
+          "rule_id": "M-01",
+          "outcome": "need_fact",
+          "check_id": "M-01.duplicate_matrix_ids"
+        }
+      ],
+      "forbidden_rule_ids": [
+        "J-05"
+      ],
+      "expect_oriented_matrix": true,
+      "expect_sample_matches": true,
+      "expect_representation_evidence": true,
+      "expect_transposed": false,
+      "dir": "F26_conflicting_duplicates",
+      "file_hashes": {
+        "matrix.tsv": "0c71d7f3b6c30401c28ad5dfd8749a37cf496e450f9cc3508a66c4007a41b4f5",
+        "metadata.tsv": "c8ffe92b737189ae6ca160d3af842ae267e69b770f51d08324b784d7c519f225"
+      },
+      "metadata_id_column": "sample_id"
+    },
+    {
+      "id": "F27",
+      "name": "undefined_case_rule_gap",
+      "matrix": "matrix.tsv",
+      "metadata": "metadata.tsv",
+      "annotation_genes": null,
+      "declared": {
+        "organism": "human",
+        "technology": "RNA-seq",
+        "level": "gene",
+        "id_type": "ensembl-gene",
+        "representation": "R1",
+        "study": "StudyA",
+        "normalization_method": "custom_zscore"
+      },
+      "expected_state": "requires_manual_review",
+      "required_records": [
+        {
+          "rule_id": "J-05",
+          "outcome": "not_assessable",
+          "check_id": "rule_gap"
+        }
+      ],
+      "forbidden_rule_ids": [],
+      "expect_oriented_matrix": true,
+      "expect_sample_matches": true,
+      "expect_representation_evidence": true,
+      "expect_transposed": false,
+      "dir": "F27_undefined_case_rule_gap",
+      "file_hashes": {
+        "matrix.tsv": "27b5229637441077ea19b0fbba80e1c0feb8cf4f665c832aa445129fc7d4a647",
+        "metadata.tsv": "c8ffe92b737189ae6ca160d3af842ae267e69b770f51d08324b784d7c519f225"
+      },
+      "metadata_id_column": "sample_id"
+    },
+    {
+      "id": "F28",
+      "name": "alternate_id_column_gsm",
+      "matrix": "matrix.tsv",
+      "metadata": "metadata.tsv",
+      "annotation_genes": null,
+      "metadata_id_column": "gsm",
+      "declared": {
+        "organism": "human",
+        "technology": "RNA-seq",
+        "level": "gene",
+        "id_type": "ensembl-gene",
+        "representation": "R1",
+        "study": "StudyA"
+      },
+      "expected_state": "compatible",
+      "required_records": [
+        {
+          "rule_id": "G-03",
+          "outcome": "pass",
+          "check_id": "G-03.orientation"
+        },
+        {
+          "rule_id": "M-01",
+          "outcome": "pass",
+          "check_id": "M-01.match"
+        },
+        {
+          "rule_id": "M-03",
+          "outcome": "pass",
+          "check_id": "M-03.tier_a"
+        },
+        {
+          "rule_id": "R-01",
+          "outcome": "pass",
+          "check_id": "R-01.declared_r1"
+        }
+      ],
+      "forbidden_rule_ids": [
+        "J-05"
+      ],
+      "expect_oriented_matrix": true,
+      "expect_sample_matches": true,
+      "expect_representation_evidence": true,
+      "expect_transposed": false,
+      "dir": "F28_alternate_id_column_gsm",
+      "file_hashes": {
+        "matrix.tsv": "27b5229637441077ea19b0fbba80e1c0feb8cf4f665c832aa445129fc7d4a647",
+        "metadata.tsv": "338caf5fbc8f86837983caa1e35cf3c517500647f2ef8b76bf6fe445fdb2f8ed"
+      }
+    },
+    {
+      "id": "F29",
+      "name": "identical_duplicate_metadata_rows",
+      "matrix": "matrix.tsv",
+      "metadata": "metadata.tsv",
+      "annotation_genes": null,
+      "metadata_id_column": "sample_id",
+      "declared": {
+        "organism": "human",
+        "technology": "RNA-seq",
+        "level": "gene",
+        "id_type": "ensembl-gene",
+        "representation": "R1",
+        "study": "StudyA"
+      },
+      "expected_state": "requires_manual_review",
+      "required_records": [
+        {
+          "rule_id": "M-01",
+          "outcome": "need_fact",
+          "check_id": "M-01.duplicate_metadata_ids"
+        },
+        {
+          "rule_id": "M-01",
+          "outcome": "need_fact",
+          "check_id": "M-01.duplicate_metadata_rows"
+        }
+      ],
+      "forbidden_rule_ids": [
+        "J-05"
+      ],
+      "expect_oriented_matrix": true,
+      "expect_sample_matches": true,
+      "expect_representation_evidence": true,
+      "expect_transposed": false,
+      "dir": "F29_identical_duplicate_metadata_rows",
+      "file_hashes": {
+        "matrix.tsv": "27b5229637441077ea19b0fbba80e1c0feb8cf4f665c832aa445129fc7d4a647",
+        "metadata.tsv": "8ac234726da361b6e18d16e17ebaf5667f252ba88be10382ef3f227082503b36"
+      }
+    },
+    {
+      "id": "F30",
+      "name": "conflicting_duplicate_metadata_rows",
+      "matrix": "matrix.tsv",
+      "metadata": "metadata.tsv",
+      "annotation_genes": null,
+      "metadata_id_column": "sample_id",
+      "declared": {
+        "organism": "human",
+        "technology": "RNA-seq",
+        "level": "gene",
+        "id_type": "ensembl-gene",
+        "representation": "R1",
+        "study": "StudyA"
+      },
+      "expected_state": "requires_manual_review",
+      "required_records": [
+        {
+          "rule_id": "M-01",
+          "outcome": "need_fact",
+          "check_id": "M-01.duplicate_metadata_ids"
+        },
+        {
+          "rule_id": "M-01",
+          "outcome": "need_fact",
+          "check_id": "M-01.duplicate_metadata_rows"
+        }
+      ],
+      "forbidden_rule_ids": [
+        "J-05"
+      ],
+      "expect_oriented_matrix": true,
+      "expect_sample_matches": true,
+      "expect_representation_evidence": true,
+      "expect_transposed": false,
+      "dir": "F30_conflicting_duplicate_metadata_rows",
+      "file_hashes": {
+        "matrix.tsv": "27b5229637441077ea19b0fbba80e1c0feb8cf4f665c832aa445129fc7d4a647",
+        "metadata.tsv": "63f3e0d75fa47da1eb73aee062e528a8efb50215c63a877610d0d56b1bf251cc"
+      }
+    },
+    {
+      "id": "F31",
+      "name": "repeated_blank_ids",
+      "matrix": "matrix.tsv",
+      "metadata": "metadata.tsv",
+      "annotation_genes": null,
+      "metadata_id_column": "sample_id",
+      "declared": {
+        "organism": "human",
+        "technology": "RNA-seq",
+        "level": "gene",
+        "id_type": "ensembl-gene",
+        "representation": "R1",
+        "study": "StudyA"
+      },
+      "expected_state": "requires_manual_review",
+      "required_records": [
+        {
+          "rule_id": "M-01",
+          "outcome": "need_fact",
+          "check_id": "M-01.metadata_id_column"
+        },
+        {
+          "rule_id": "M-01",
+          "outcome": "need_fact",
+          "check_id": "M-01.duplicate_metadata_rows"
+        },
+        {
+          "rule_id": "M-03",
+          "outcome": "pass",
+          "check_id": "M-03.tier_a"
+        }
+      ],
+      "forbidden_rule_ids": [
+        "M-02",
+        "J-05"
+      ],
+      "expect_oriented_matrix": true,
+      "expect_sample_matches": false,
+      "expect_representation_evidence": true,
+      "expect_transposed": false,
+      "dir": "F31_repeated_blank_ids",
+      "file_hashes": {
+        "matrix.tsv": "27b5229637441077ea19b0fbba80e1c0feb8cf4f665c832aa445129fc7d4a647",
+        "metadata.tsv": "c77a68a81efd1379f34c03619daef0a2fc4709190e263f5046d94caea0ae5c57"
+      }
+    }
+  ]
+}
