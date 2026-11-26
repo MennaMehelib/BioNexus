@@ -2,7 +2,7 @@
 
 Maintained by the lead architect. Every entry cites its source. Status words: Decided / Open / Proposed-gated / Done.
 
-**T1.8 status: ACCEPTED AS-IS.** Claude's final independent review disposition is ACCEPT AS-IS. The owner subsequently verified the fixture manifest, integration tests, coverage report and full test suite locally on Windows. T1.8 implementation artifacts remain uncommitted.
+**T1.8 status: ACCEPTED AS-IS.** Claude's final independent review disposition is ACCEPT AS-IS. The owner subsequently verified the fixture manifest, integration tests, coverage report and full test suite locally on Windows. T1.8 implementation and integration-test artifacts were committed locally as `f7d43e5` on 2026-11-26. The commit has not yet been pushed.
 
 ## 1. Accepted decisions
 
@@ -49,7 +49,7 @@ Note on AD-02: the owner approved "the plan" and "the proposed direction and dec
 | 2026-11-24 | src/bionexus/duplicates.py, tests/unit/test_duplicates.py | T1.7 duplicate detection implementation and tests committed as `41d1ca3` | T1.7 duplicate detection implementation |
 | 2026-11-24 | src/bionexus/metadata.py, tests/unit/test_metadata.py | T1.7 metadata checks (M-01, M-02, M-03), including the F1 positional-matching collision correction, committed as `033feba` | Implement approved metadata checks and prevent positional matching when normalized IDs collide |
 | 2026-11-24 | src/bionexus/metadata.py, tests/unit/test_metadata.py | I-12 metadata duplicate detection committed separately as `45dedd8`; adds `find_metadata_duplicates()` and its evidence/tests without changing `find_duplicates()` or `match_samples()` | Implement the approved M-01 metadata duplicate-row behavior |
-| 2026-11-26 | src/bionexus/cli.py, tests/integration/test_intake.py, tests/integration/fixtures/, scripts/coverage_report.py | T1.8 implementation and integration-test artifacts supplied in the working tree; independently reviewed by Claude and accepted as-is. Owner subsequently verified the canonical manifest hash, integration suite, coverage report and full suite locally. No T1.8 commit is recorded. | T1.8 implementation, approved decisions D1–D6, Claude final disposition and owner validation |
+| 2026-11-26 | src/bionexus/cli.py, tests/integration/test_intake.py, tests/integration/fixtures/, scripts/coverage_report.py | T1.8 implementation and integration-test artifacts committed as `f7d43e5`; independently reviewed by Claude and accepted as-is. Owner verified the canonical manifest hash, integration suite, coverage report and full suite locally on Windows. The commit remains local and has not yet been pushed. | T1.8 implementation, approved decisions D1–D6, Claude final disposition and owner validation |
 
 ## 5. Validation results
 
@@ -79,21 +79,26 @@ M0: roadmap, workflow chart and prompts delivered; owner repo handoff completed.
 
 2026-11-22: T1.3b (2417c68) and T1.5b (9e64cad) were committed and pushed to `fix/t1-3b-t1-5b`, then merged into `implementation/m1-intake` through PR #1.
 
-2026-11-24: T1.7 duplicate detection implementation was committed as `41d1ca3`. The metadata checks and F1 correction were committed separately as `033feba`; I-12 metadata duplicate detection was committed separately as `45dedd8`. The local branch `implementation/m1-intake` is two commits ahead of `origin/implementation/m1-intake` as of this record update; `033feba` and `45dedd8` have not yet been pushed. I-08, I-11 and I-12 are resolved. I-09 and I-10 remain open specification issues.
+2026-11-24: T1.7 duplicate detection implementation was committed as `41d1ca3`. The metadata checks and F1 correction were committed separately as `033feba`; I-12 metadata duplicate detection was committed separately as `45dedd8`. At that time, the local branch `implementation/m1-intake` was two commits ahead of `origin/implementation/m1-intake`. Those commits were subsequently pushed as part of the update that advanced the remote to `cad8469`. I-08, I-11 and I-12 are resolved. I-09 and I-10 remain open specification issues.
 
 Latest owner-provided Git evidence:
 
 - Branch: `implementation/m1-intake`.
-- Latest commit: `cad8469 docs: update BioNexus working record through T1.8 review`.
-- Owner ran `git push origin implementation/m1-intake`; push output advanced remote from `f3e4aac` to `cad8469`.
-- Subsequent `git status -sb` showed `## implementation/m1-intake...origin/implementation/m1-intake`, confirming the tracked branch was synchronized at that point.
-- Numerous untracked review artifacts and T1.8 files remained in the working tree. They were not staged, committed, deleted, or otherwise modified during this review. Preserve them.
+- Latest previously pushed commit: `cad8469 docs: update BioNexus working record through T1.8 review`.
+- Owner ran `git push origin implementation/m1-intake`; push output advanced the remote from `f3e4aac` to `cad8469`.
+- Subsequent `git status -sb` confirmed the branch was synchronized with origin at that point.
+- On 2026-11-26, the owner committed T1.8 locally as `f7d43e5 feat: add T1.8 intake runner and integration tests`.
+- The T1.8 commit changed 69 files: 3940 insertions and 13 deletions.
+- Subsequent owner-provided `git status -sb` showed `implementation/m1-intake` ahead of `origin/implementation/m1-intake` by 1 commit.
+- No tracked modifications or staged changes were reported after the T1.8 commit.
+- Untracked review artifacts, diffs, backups and the T1.8 handoff ZIP remain in the working tree. They were not included in the T1.8 commit. Preserve them.
+- T1.8 has not yet been pushed.
 
 T1.8: Claude completed the independent review and issued **ACCEPT AS-IS**. The implementation and tests satisfy the applicable approved T1.8 decisions. The owner subsequently verified the canonical fixture-manifest hash, F28–F31 fixture presence, integration suite, AC8 coverage report and full test suite locally on Windows.
 
 The latest owner-reported validation is 96 integration tests passed, 3 skipped; AC8 PASS; and 636 full-suite tests passed, 3 skipped. Claude's Linux scratch validation is recorded separately in §5 and must not be conflated with the owner's Windows results.
 
-T1.8 remains uncommitted. Preserve all untracked implementation and review artifacts. The latest previously verified tracked-branch state remains `implementation/m1-intake` at `cad8469`, synchronized with origin at the time of that Git check. A fresh Git status is required before any future staging or commit.
+T1.8 was committed locally as `f7d43e5` on 2026-11-26 and has not yet been pushed. The latest previously verified remote commit is `cad8469`; the local branch is one commit ahead of origin according to the owner's subsequent Git status. Preserve all remaining untracked review artifacts, diffs, backups and the T1.8 handoff ZIP. The committed T1.8 implementation and fixtures are tracked and must not be described as uncommitted.
 
 ## 7. T1.8 review record — preliminary observations and final dispositions
 
@@ -265,6 +270,8 @@ The owner separately ran the actual local Windows working tree. The owner's resu
 
 **Final decision:** T1.8 is accepted as-is. No corrective implementation, test change or specification amendment is required for T1.8 closure. Any future change requires a separately documented finding, approved decision or explicit owner authorization.
 
+The accepted T1.8 implementation was committed locally as `f7d43e5` on 2026-11-26; the commit's push remains pending.
+
 ## 9. Current acceptance and change-control status
 
 - T1.8: **ACCEPTED AS-IS** — Claude final disposition.
@@ -273,8 +280,8 @@ The owner separately ran the actual local Windows working tree. The owner's resu
 - F01–F31 manifest entries and F28–F31 fixtures: owner-verified present.
 - NEON implementation: accepted as-is; no corrective code changes required by the final review.
 - D2, D4, D5 and D6c limitations remain documented as described in §§7–8.
-- No T1.8 commit is recorded.
-- The latest previously verified tracked-branch state is `implementation/m1-intake` at `cad8469`, synchronized with origin at the time of that Git check. This is historical Git evidence, not a claim about the current working-tree status.
-- Preserve all untracked implementation files, fixtures, diffs, backups and review artifacts. Do not stage, commit, push, reset, clean, stash or delete them without explicit owner instruction.
+- T1.8 implementation commit: `f7d43e5` (2026-11-26), committed locally and not yet pushed.
+- Latest previously verified remote commit: `cad8469`. Latest local commit: `f7d43e5`. The owner-reported branch status is one commit ahead of origin; this is based on the post-commit Git check.
+- Preserve all remaining untracked review artifacts, diffs, backups and the T1.8 handoff ZIP. They were not included in the T1.8 commit. Do not stage, commit, push, reset, clean, stash or delete them without explicit owner instruction.
 - Do not modify protected T1.1–T1.7 files as part of T1.8 closure.
 - Any future change must cite its specific accepted decision, confirmed defect, test result or owner-approved requirement.
